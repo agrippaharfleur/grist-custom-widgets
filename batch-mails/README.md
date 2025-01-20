@@ -9,11 +9,10 @@ A custom widget for Grist that enables batch email composition with BCC recipien
 - 📧 Compose emails to multiple recipients using BCC
 - ✂️ Remove/restore recipients from the mailing list
 - ➕ Manually add additional recipients
-- ✅ Email validation
 - 🔄 Real-time recipient count updates
 - 👥 Separated lists for table contacts and manually added contacts
 - 📝 Full email composition (reply-to, subject, content)
-- 🎨 Clean, GitHub-inspired design
+- 📨 Opens in your default email client for final review and sending
 
 ## Setup
 
