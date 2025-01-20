@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+    <style>
+        /* Reset and base styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #24292f;
+            background-color: #ffffff;
+            padding: 16px;
+        }
+
+        /* Container styles */
+        .email-widget {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+        }
+
+        /* Header styles */
+        .widget-header {
+            padding: 16px;
+            background-color: #f6f8fa;
+            border-bottom: 1px solid #d0d7de;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+        }
+
+        .widget-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        /* Form styles */
+        .form-group {
+            padding: 16px;
+            border-bottom: 1px solid #d0d7de;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .warning-text {
+            color: #57606a;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            font-size: 14px;
+            line-height: 20px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #0969da;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.3);
+        }
+
+        /* Email editor */
+        .email-editor {
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        /* Recipients list */
+        .recipients-list {
+            margin-top: 8px;
+            padding: 8px;
+            background-color: #f6f8fa;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .recipients-count {
+            color: red;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        /* Button styles */
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+            white-space: nowrap;
+            vertical-align: middle;
+            cursor: pointer;
+            user-select: none;
+            border: 1px solid;
+            border-radius: 6px;
+            appearance: none;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            color: #ffffff;
+            background-color: #2da44e;
+            border-color: rgba(27, 31, 36, 0.15);
+        }
+
+        .btn-primary:hover {
+            background-color: #2c974b;
+        }
+
+        .btn-secondary {
+            color: #24292f;
+            background-color: #f6f8fa;
+            border-color: rgba(27, 31, 36, 0.15);
+        }
+
+        .btn-secondary:hover {
+            background-color: #f3f4f6;
+        }
+
+        .widget-footer {
+            padding: 16px;
+            text-align: right;
+        }
+
+        /* Status message */
+        .status-message {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .status-message.success {
+            background-color: #dafbe1;
+            color: #1a7f37;
+            display: block;
+        }
+
+        .status-message.error {
+            background-color: #ffebe9;
+            color: #cf222e;
+            display: block;
+        }
+
+        /* Recipient styles */
+        .recipient {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            margin: 2px 0;
+            border-radius: 4px;
+            background-color: #ffffff;
+        }
+
+        .recipient:hover {
+            background-color: #f6f8fa;
+        }
+
+        .recipient .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .recipient.removed {
+            text-decoration: line-through;
+            color: #57606a;
+        }
+
+        .btn-icon {
+            padding: 4px 8px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #57606a;
+            border-radius: 4px;
+        }
+
+        .btn-icon:hover {
+            background-color: #f3f4f6;
+            color: #24292f;
+        }
+
+        .btn-danger {
+            color: #cf222e;
+        }
+
+        .btn-danger:hover {
+            background-color: #ffebe9;
+        }
+
+        .btn-success {
+            color: #1a7f37;
+        }
+
+        .btn-success:hover {
+            background-color: #dafbe1;
+        }
+
+        .manual-add-section {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .manual-input {
+            flex-grow: 1;
+        }
+
+        /* Lists styles */
+        .removed-list, .manual-list {
+            margin-top: 16px;
+            padding: 8px;
+            background-color: #f6f8fa;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+        }
+
+        .removed-list h3, .manual-list h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #57606a;
+        }
+
+        .removed-emails, .manual-emails {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .manual-email {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            margin: 2px 0;
+            border-radius: 4px;
+            background-color: #ffffff;
+        }
+
+        .tag {
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 8px;
+            background-color: #ddf4ff;
+            color: #0969da;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-widget">
+        <div class="widget-header">
+            <h2>Batch Email Sender</h2>
+            <p>Configure and send batch emails to multiple recipients</p>
+        </div>
+
+        <div class="form-group">
+            <label for="replyTo">Reply-to Email Address</label>
+            <input type="email" id="replyTo" placeholder="Enter reply-to email address">
+        </div>
+
+        <div class="form-group">
+            <label>Recipients (BCC)</label>
+            <p class="warning-text"><i>💡 Filters must be applied on this widget's view to affect the recipient list. Please verify that the recipient count matches your expected results.</i></p>
+            <div id="recipientsList" class="recipients-list">
+                <!-- Recipients will be listed here -->
+            </div>
+            <div class="recipients-count">
+                <b><span id="recipientsCount">0</span></b> recipients selected
+            </div>
+            <div id="removedList" class="removed-list" style="display: none;">
+                <h3>Removed Recipients</h3>
+                <div id="removedEmails" class="removed-emails">
+                    <!-- Removed emails will be listed here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="subject">Email Subject</label>
+            <input type="text" id="subject" placeholder="Enter email subject">
+        </div>
+
+        <div class="form-group">
+            <label for="emailContent">Email Content</label>
+            <textarea id="emailContent" class="email-editor" placeholder="Write your email content here..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Additional Recipients</label>
+            <div class="manual-add-section">
+                <input type="email" id="newEmail" placeholder="Enter email address" class="manual-input">
+                <button id="addEmail" class="btn btn-secondary">Add Recipient</button>
+            </div>
+            <div id="manualList" class="manual-list" style="display: none;">
+                <h3>Manually Added Recipients</h3>
+                <div id="manualEmails" class="manual-emails">
+                    <!-- Manually added emails will be listed here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="widget-footer">
+            <button id="sendEmail" class="btn btn-primary">Compose Email</button>
+        </div>
+
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+</body>
+</html>
