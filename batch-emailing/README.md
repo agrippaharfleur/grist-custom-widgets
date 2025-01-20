@@ -17,7 +17,7 @@ A custom widget for Grist that enables batch email composition with BCC recipien
 ## Setup
 
 1. Create a new custom widget in your Grist document
-2. Copy the contents of `index.html` and `script.js` into your widget
+2. Copy the contents of `batch-emailing.html` and `batch-emailing.js` into your widget
 3. Configure the widget to connect to a table column containing email addresses
 
 ## Usage
