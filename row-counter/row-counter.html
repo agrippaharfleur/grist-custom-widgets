@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+    <style>
+        :root {
+            --color-canvas-default: #ffffff;
+            --color-border-default: #d0d7de;
+            --color-fg-default: #24292f;
+            --color-fg-muted: #57606a;
+            --color-neutral-muted: #f6f8fa;
+            --color-neutral-subtle: #eaeef2;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--color-fg-default);
+        }
+
+        .container {
+            padding: 16px;
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            background-color: var(--color-canvas-default);
+            margin: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .stats-group {
+            background-color: var(--color-neutral-muted); /* CUSTOMIZE BACKGROUND COLOR HERE */
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .count {
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--color-fg-default);
+            margin: 4px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--color-fg-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip:after {
+            content: "Total number of rows in the table"; /* CUSTOMIZE TOOLTIP TEXT HERE */
+            position: absolute;
+            background: var(--color-fg-default);
+            color: var(--color-canvas-default);
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s;
+            margin-bottom: 5px;
+        }
+
+        .tooltip:hover:after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Optional hover effect */
+        .stats-group:hover {
+            background-color: var(--color-neutral-subtle); /* CUSTOMIZE HOVER COLOR HERE */
+            transition: background-color 0.2s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="stats-group">
+            <div class="tooltip">
+                <div class="count" id="rowCount">0</div>
+                <div class="label">Rows</div>
+            </div>
+        </div>
+    </div>
+    <script src="widget.js"></script>
+</body>
+</html>
