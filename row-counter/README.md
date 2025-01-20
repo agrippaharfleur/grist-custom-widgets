@@ -2,7 +2,7 @@
 
 A clean, minimalist widget for Grist that displays the total number of rows in your table, styled using GitHub's design system. Perfect for dashboards and quick data overviews.
 
-![Demo here](https://docs.getgrist.com/6wF1LMEkA2J6/Custom-Widget-Portfolio/p/2)
+[🔗 Try it here](https://docs.getgrist.com/6wF1LMEkA2J6/Custom-Widget-Portfolio/p/2)
 
 ## Features
 
