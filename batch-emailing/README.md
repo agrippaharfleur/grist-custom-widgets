@@ -12,6 +12,7 @@ A custom widget for Grist that enables batch email composition with BCC recipien
 - 🔄 Real-time recipient count updates
 - 👥 Separated lists for table contacts and manually added contacts
 - 📝 Full email composition (reply-to, subject, content)
+- 📄 Auto-fill content from table column (optional) (_thanks to astranchet for the suggestion!_)
 - 📨 Opens in your default email client for final review and sending
 
 ## Setup
@@ -23,17 +24,19 @@ A custom widget for Grist that enables batch email composition with BCC recipien
 ## Usage
 
 1. **Column Mapping**
-   - Map your email column in the widget configuration
-   - The widget will automatically load emails from the mapped column
+   - Email Column (required): Map your email column in the widget configuration
+   - Content Column (optional): Map a column containing email content to auto-fill the message
+   - The widget will automatically load emails from the mapped column and split comma-separated emails
 
 2. **Managing Recipients**
    - Remove recipients by clicking the × button
    - Restore removed recipients from the "Removed Recipients" section
    - Add additional recipients manually using the input field
+   - Multiple emails per cell: Use comma-separated format like email1@domain.com, email2@domain.com
 
 3. **Composing Email**
    - Enter your reply-to email address
-   - Write your subject and content
+   - Write your subject and content (or use auto-filled content from table)
    - Click "Compose Email" to open in your default email client
    - All recipients will be automatically added to BCC
 
@@ -48,7 +51,6 @@ The widget uses:
 - Grist Plugin API for data interaction
 - Native JavaScript for DOM manipulation
 - `mailto:` protocol for email composition
-
 
 ## Contributing
 

@@ -3,7 +3,7 @@
 <head>
     <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
     <style>
-        /* Reset and base styles */
+        
         * {
             box-sizing: border-box;
             margin: 0;
@@ -19,7 +19,6 @@
             padding: 16px;
         }
 
-        /* Container styles */
         .email-widget {
             max-width: 800px;
             margin: 0 auto;
@@ -27,7 +26,6 @@
             border-radius: 6px;
         }
 
-        /* Header styles */
         .widget-header {
             padding: 16px;
             background-color: #f6f8fa;
@@ -42,7 +40,6 @@
             margin-bottom: 8px;
         }
 
-        /* Form styles */
         .form-group {
             padding: 16px;
             border-bottom: 1px solid #d0d7de;
@@ -58,6 +55,13 @@
             color: #57606a;
             font-size: 13px;
             margin-bottom: 12px;
+        }
+
+        .info-text {
+            color: #0969da;
+            font-size: 13px;
+            margin-bottom: 12px;
+            font-style: italic;
         }
 
         .form-group input,
@@ -77,13 +81,11 @@
             box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.3);
         }
 
-        /* Email editor */
         .email-editor {
             min-height: 200px;
             resize: vertical;
         }
 
-        /* Recipients list */
         .recipients-list {
             margin-top: 8px;
             padding: 8px;
@@ -100,7 +102,6 @@
             margin-top: 4px;
         }
 
-        /* Button styles */
         .btn {
             display: inline-block;
             padding: 8px 16px;
@@ -142,7 +143,6 @@
             text-align: right;
         }
 
-        /* Status message */
         .status-message {
             margin-top: 8px;
             padding: 8px;
@@ -162,7 +162,6 @@
             display: block;
         }
 
-        /* Recipient styles */
         .recipient {
             display: flex;
             justify-content: space-between;
@@ -227,7 +226,6 @@
             flex-grow: 1;
         }
 
-        /* Lists styles */
         .removed-list, .manual-list {
             margin-top: 16px;
             padding: 8px;
@@ -284,7 +282,6 @@
             <label>Recipients (BCC)</label>
             <p class="warning-text"><i>💡 Filters must be applied on this widget's view to affect the recipient list. Please verify that the recipient count matches your expected results.</i></p>
             <div id="recipientsList" class="recipients-list">
-                <!-- Recipients will be listed here -->
             </div>
             <div class="recipients-count">
                 <b><span id="recipientsCount">0</span></b> recipients selected
@@ -292,7 +289,6 @@
             <div id="removedList" class="removed-list" style="display: none;">
                 <h3>Removed Recipients</h3>
                 <div id="removedEmails" class="removed-emails">
-                    <!-- Removed emails will be listed here -->
                 </div>
             </div>
         </div>
@@ -304,6 +300,9 @@
 
         <div class="form-group">
             <label for="emailContent">Email Content</label>
+            <p class="info-text" style="display: none;">
+                📝 Content auto-filled from first table row. You can edit it before sending.
+            </p>
             <textarea id="emailContent" class="email-editor" placeholder="Write your email content here..."></textarea>
         </div>
 
@@ -316,7 +315,6 @@
             <div id="manualList" class="manual-list" style="display: none;">
                 <h3>Manually Added Recipients</h3>
                 <div id="manualEmails" class="manual-emails">
-                    <!-- Manually added emails will be listed here -->
                 </div>
             </div>
         </div>
