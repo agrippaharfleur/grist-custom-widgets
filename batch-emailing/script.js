@@ -136,7 +136,6 @@ function updateLanguage() {
     document.getElementById('addEmail').textContent = t('addRecipientBtn');
     
     document.getElementById('sendEmail').textContent = t('composeBtn');
-
     
     // Update dynamic content
     updateRecipientsDisplay();
@@ -207,22 +206,12 @@ let mappedColumns = null;
 let allRecords = [];
 let currentMappings = {};
 
-loadLanguagePreference();
+// DOM Elements (will be initialized in DOMContentLoaded)
+let recipientsList, recipientsCount, removedEmailsList, removedListSection, 
+    manualEmailsList, manualListSection, replyToInput, subjectInput, 
+    emailContent, newEmailInput, addEmailBtn, sendEmailBtn, statusMessage;
 
-// Elements
-const recipientsList = document.getElementById('recipientsList');
-const recipientsCount = document.getElementById('recipientsCount');
-const removedEmailsList = document.getElementById('removedEmails');
-const removedListSection = document.getElementById('removedList');
-const manualEmailsList = document.getElementById('manualEmails');
-const manualListSection = document.getElementById('manualList');
-const replyToInput = document.getElementById('replyTo');
-const subjectInput = document.getElementById('subject');
-const emailContent = document.getElementById('emailContent');
-const newEmailInput = document.getElementById('newEmail');
-const addEmailBtn = document.getElementById('addEmail');
-const sendEmailBtn = document.getElementById('sendEmail');
-const statusMessage = document.getElementById('statusMessage');
+loadLanguagePreference();
 
 // Handle record updates from Grist
 grist.onRecords(function(records, mappings) {
@@ -282,12 +271,12 @@ function prefillContentFromColumn() {
             const { subject, content } = parseContentAndSubject(columnContent);
             
             // Auto-fill subject if found and field is empty
-            if (subject && !subjectInput.value.trim()) {
+            if (subject && subjectInput && !subjectInput.value.trim()) {
                 subjectInput.value = subject;
             }
             
             // Auto-fill content if field is empty
-            if (content && !emailContent.value.trim()) {
+            if (content && emailContent && !emailContent.value.trim()) {
                 emailContent.value = content;
             }
             
@@ -307,7 +296,7 @@ function prefillContentFromColumn() {
 
 // Get email content from textarea
 function getEmailContent() {
-    return emailContent.value.trim();
+    return emailContent ? emailContent.value.trim() : '';
 }
 
 // Create recipient element
@@ -339,6 +328,8 @@ function createRecipientElement(email, isRemoved = false) {
 
 // Update the recipients display
 function updateRecipientsDisplay() {
+    if (!recipientsList || !recipientsCount) return;
+    
     recipientsList.innerHTML = '';
 
     const activeEmails = emailList.filter(email => !removedEmails.has(email) && !manuallyAddedEmails.has(email));
@@ -351,6 +342,8 @@ function updateRecipientsDisplay() {
 
 // Update removed emails display
 function updateRemovedEmailsDisplay() {
+    if (!removedEmailsList || !removedListSection) return;
+    
     removedEmailsList.innerHTML = '';
 
     if (removedEmails.size > 0) {
@@ -366,6 +359,8 @@ function updateRemovedEmailsDisplay() {
 
 // Update manual emails display
 function updateManualEmailsDisplay() {
+    if (!manualEmailsList || !manualListSection) return;
+    
     manualEmailsList.innerHTML = '';
 
     if (manuallyAddedEmails.size > 0) {
@@ -433,12 +428,13 @@ function addNewEmail(email) {
     emailList.push(email);
     updateManualEmailsDisplay();
     updateRecipientsDisplay();
-    newEmailInput.value = '';
+    if (newEmailInput) newEmailInput.value = '';
     showSuccess(t('addedTo', {email}));
 }
 
 // Show success message
 function showSuccess(message) {
+    if (!statusMessage) return;
     statusMessage.className = 'status-message success';
     statusMessage.textContent = message;
 
@@ -450,6 +446,7 @@ function showSuccess(message) {
 
 // Show error message
 function showError(message) {
+    if (!statusMessage) return;
     statusMessage.className = 'status-message error';
     statusMessage.textContent = message;
 }
@@ -459,65 +456,87 @@ function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-// Event Listeners
-addEmailBtn.addEventListener('click', () => {
-    const email = newEmailInput.value.trim();
-    addNewEmail(email);
-});
-
-newEmailInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        const email = newEmailInput.value.trim();
-        addNewEmail(email);
-    }
-});
-
-// Handle email composition
-sendEmailBtn.addEventListener('click', function() {
-    if (!mappedColumns) {
-        showError(t('mapEmailError'));
-        return;
-    }
-
-    const activeEmails = emailList.filter(email => !removedEmails.has(email));
-    if (activeEmails.length === 0) {
-        showError(t('noRecipientsError'));
-        return;
-    }
-
-    const replyTo = replyToInput.value.trim();
-    if (!replyTo || !isValidEmail(replyTo)) {
-        showError(t('invalidReplyToError'));
-        return;
-    }
-
-    const subject = subjectInput.value.trim();
-    if (!subject) {
-        showError(t('noSubjectError'));
-        return;
-    }
-
-    const content = getEmailContent();
-    if (!content) {
-        showError(t('noContentError'));
-        return;
-    }
-
-    const mailtoUrl = `mailto:${replyTo}?bcc=${activeEmails.join(',')}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(content)}`;
-
-    if (window.parent && window.parent !== window) {
-        window.parent.open(mailtoUrl, '_blank');
-    } else {
-        window.open(mailtoUrl, '_blank');
-    }
-
-    showSuccess(t('emailOpened'));
-});
-
-// Initialize language on DOM load
+// Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize DOM elements
+    recipientsList = document.getElementById('recipientsList');
+    recipientsCount = document.getElementById('recipientsCount');
+    removedEmailsList = document.getElementById('removedEmails');
+    removedListSection = document.getElementById('removedList');
+    manualEmailsList = document.getElementById('manualEmails');
+    manualListSection = document.getElementById('manualList');
+    replyToInput = document.getElementById('replyTo');
+    subjectInput = document.getElementById('subject');
+    emailContent = document.getElementById('emailContent');
+    newEmailInput = document.getElementById('newEmail');
+    addEmailBtn = document.getElementById('addEmail');
+    sendEmailBtn = document.getElementById('sendEmail');
+    statusMessage = document.getElementById('statusMessage');
+    
+    // Add event listeners
+    if (addEmailBtn) {
+        addEmailBtn.addEventListener('click', () => {
+            const email = newEmailInput ? newEmailInput.value.trim() : '';
+            addNewEmail(email);
+        });
+    }
+
+    if (newEmailInput) {
+        newEmailInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const email = newEmailInput.value.trim();
+                addNewEmail(email);
+            }
+        });
+    }
+
+    if (sendEmailBtn) {
+        sendEmailBtn.addEventListener('click', function() {
+            if (!mappedColumns) {
+                showError(t('mapEmailError'));
+                return;
+            }
+
+            const activeEmails = emailList.filter(email => !removedEmails.has(email));
+            if (activeEmails.length === 0) {
+                showError(t('noRecipientsError'));
+                return;
+            }
+
+            const replyTo = replyToInput ? replyToInput.value.trim() : '';
+            if (!replyTo || !isValidEmail(replyTo)) {
+                showError(t('invalidReplyToError'));
+                return;
+            }
+
+            const subject = subjectInput ? subjectInput.value.trim() : '';
+            if (!subject) {
+                showError(t('noSubjectError'));
+                return;
+            }
+
+            const content = getEmailContent();
+            if (!content) {
+                showError(t('noContentError'));
+                return;
+            }
+
+            const mailtoUrl = `mailto:${replyTo}?bcc=${activeEmails.join(',')}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(content)}`;
+
+            if (window.parent && window.parent !== window) {
+                window.parent.open(mailtoUrl, '_blank');
+            } else {
+                window.open(mailtoUrl, '_blank');
+            }
+
+            showSuccess(t('emailOpened'));
+        });
+    }
+    
+    // Initialize language
     updateLanguage();
     
+    // Language switcher functionality
     const currentLangElement = document.querySelector('.current-lang');
     if (currentLangElement) {
         currentLangElement.addEventListener('click', () => {
@@ -525,6 +544,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Close dropdown when clicking outside
     document.addEventListener('click', function(e) {
         const switcher = document.querySelector('.language-switcher');
         if (switcher && !switcher.contains(e.target)) {
