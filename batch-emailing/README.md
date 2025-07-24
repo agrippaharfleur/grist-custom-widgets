@@ -18,6 +18,12 @@ A custom widget for Grist that enables batch email composition with BCC recipien
 
 ## Installation
 
+### Option 1: Direct Repository Link (Recommended)
+1. Create a new custom URL widget in your Grist document
+2. Use this repository URL as the widget source : https://agrippaharfleur.github.io/grist-custom-widgets/batch-emailing/
+3. Configure the widget to connect to your table columns
+
+### Option 2: Manual Installation
 1. Create a new custom widget in your Grist document using the Custom Widget Builder
 2. Copy the HTML content and paste it into the widget
 3. Copy the CSS from `style.css` and add it in a `<style> </style>` section in the HTML
