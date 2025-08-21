@@ -65,6 +65,6 @@ Widget personnalisé affichant un en-tête conforme au Système de Design de l'�
 |-------------------|----------------|----------|
 | Ministère\nde l'Europe\net des Affaires\nÉtrangères | Référentiel des pays et des territoires | Et ici, je pourrais ajouter une baseline si j'avais une idée de baseline a ajouter 🙃 |
 
-<img width="794" height="379" alt="exemple-dsfr-en-tete" src="https://github.com/user-attachments/assets/58eb5eff-f745-435b-b2f6-0262d91ffe28" />
+<img width="799" height="453" alt="exemple-dsfr-en-tete" src="https://github.com/user-attachments/assets/24cbc07c-d51e-43d9-99e7-a4456723990e" />
 
 Affichera une en-tête DSFR complète avec ces informations.
