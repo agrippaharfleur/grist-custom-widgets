@@ -19,6 +19,7 @@
         .fr-header__brand {
             filter: none !important;
             --hover: transparent;
+            --active: transparent;
         }
     </style>
 </head>
@@ -44,7 +45,63 @@
             </div>
         </div>
     </header>
+    <!-- DSFR JavaScript -->
+    <script>
+        // Configuration des colonnes
+        grist.ready({
+            columns: [
+                { name: "intitule_officiel", title: "Intitulé officiel", type: "Text", optional: true },
+                { name: "nom_service", title: "Titre", type: "Text", optional: true },
+                { name: "baseline", title: "Sous-titre", type: "Text", optional: true }
+            ],
+            requiredAccess: 'read table'
+        });
 
+        // Mise à jour des données
+        grist.onRecord(function (record, mappings) {
+            const mapped = grist.mapColumnNames(record, mappings);
+
+            if (mapped) {
+                // Intitulé officiel - préserver les retours à la ligne existants ou valeur par défaut
+                if (mapped.intitule_officiel) {
+                    // Remplacer les retours à la ligne (\n) par des <br>
+                    const intitule = mapped.intitule_officiel.replace(/\n/g, '<br>');
+                    document.getElementById('intitule-officiel').innerHTML = intitule;
+                } else {
+                    document.getElementById('intitule-officiel').innerHTML = 'République<br>Française';
+                }
+
+                // Nom du service
+                document.getElementById('nom-service').textContent = mapped.nom_service || '';
+
+                // Baseline
+                document.getElementById('baseline').textContent = mapped.baseline || '';
+            }
+        });
+
+        grist.onRecords(function (records, mappings) {
+            if (records && records.length > 0) {
+                const mapped = grist.mapColumnNames(records[0], mappings);
+
+                if (mapped) {
+                    // Intitulé officiel - préserver les retours à la ligne existants ou valeur par défaut
+                    if (mapped.intitule_officiel) {
+                        // Remplacer les retours à la ligne (\n) par des <br>
+                        const intitule = mapped.intitule_officiel.replace(/\n/g, '<br>');
+                        document.getElementById('intitule-officiel').innerHTML = intitule;
+                    } else {
+                        document.getElementById('intitule-officiel').innerHTML = 'République<br>Française';
+                    }
+
+                    // Nom du service
+                    document.getElementById('nom-service').textContent = mapped.nom_service || '';
+
+                    // Baseline
+                    document.getElementById('baseline').textContent = mapped.baseline || '';
+                }
+            }
+        });
+    </script>
 
 </body>
 
