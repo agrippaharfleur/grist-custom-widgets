@@ -19,7 +19,6 @@
         .fr-header__brand {
             filter: none !important;
             --hover: transparent;
-            --active: transparent;
         }
     </style>
 </head>
@@ -32,77 +31,105 @@
                     <div class="fr-header__brand fr-enlarge-link">
                         <div class="fr-header__brand-top">
                             <div class="fr-header__logo">
-                                <p class="fr-logo" id="intitule-officiel">Intitulé <br>officiel</p>
+                                <p class="fr-logo" id="intitule-officiel">République<br>Française</p>
+                            </div>
+                            <div class="fr-header__operator" id="operator-section" style="display: none;">
+                                <img class="fr-responsive-img" style="max-width: 9.0625rem;" id="logo-img" alt="Logo" />
                             </div>
                         </div>
                         <div class="fr-header__service">
-                            <p class="fr-header__service-title" id="nom-service">Nom du site / service</p>
-                            <p class="fr-header__service-tagline" id="baseline">baseline - précisions sur l'organisation
-                            </p>
+                            <p class="fr-header__service-title" id="nom-service"></p>
+                            <p class="fr-header__service-tagline" id="baseline"></p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </header>
+
     <!-- DSFR JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/dsfr.module.min.js" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/dsfr.nomodule.min.js" nomodule></script>
+
     <script>
         // Configuration des colonnes
         grist.ready({
             columns: [
-                { name: "intitule_officiel", title: "Intitulé officiel", type: "Text", optional: true },
-                { name: "nom_service", title: "Titre", type: "Text", optional: true },
-                { name: "baseline", title: "Sous-titre", type: "Text", optional: true }
+                { name: "intitule_officiel", title: "Bloc marque", type: "Text", optional: true, description: "Texte affiché dans le bloc marque (ex: nom du ministère)" },
+                { name: "nom_service", title: "Nom du service", type: "Text", optional: true, description: "Titre principal" },
+                { name: "baseline", title: "Baseline", type: "Text", optional: true, description: "Sous-titre" },
+                { name: "logo", title: "Logo", type: "Attachments", optional: true, description: "Logo à afficher à droite du bloc marque" }
             ],
             requiredAccess: 'read table'
         });
 
-        // Mise à jour des données
-        grist.onRecord(function (record, mappings) {
-            const mapped = grist.mapColumnNames(record, mappings);
+        // Fonction pour gérer l'affichage du logo
+        async function updateLogo(logoAttachments) {
+            const operatorSection = document.getElementById('operator-section');
+            const logoImg = document.getElementById('logo-img');
 
-            if (mapped) {
-                // Intitulé officiel - préserver les retours à la ligne existants ou valeur par défaut
-                if (mapped.intitule_officiel) {
-                    // Remplacer les retours à la ligne (\n) par des <br>
-                    const intitule = mapped.intitule_officiel.replace(/\n/g, '<br>');
-                    document.getElementById('intitule-officiel').innerHTML = intitule;
-                } else {
-                    document.getElementById('intitule-officiel').innerHTML = 'République<br>Française';
-                }
-
-                // Nom du service
-                document.getElementById('nom-service').textContent = mapped.nom_service || '';
-
-                // Baseline
-                document.getElementById('baseline').textContent = mapped.baseline || '';
+            if (!logoAttachments || !Array.isArray(logoAttachments) || logoAttachments.length === 0) {
+                operatorSection.style.display = 'none';
+                return;
             }
-        });
 
-        grist.onRecords(function (records, mappings) {
+            try {
+                const tokenInfo = await grist.docApi.getAccessToken({ readOnly: true });
+                const attachmentId = logoAttachments[0];
+                const logoUrl = `${tokenInfo.baseUrl}/attachments/${attachmentId}/download?auth=${tokenInfo.token}`;
+
+                logoImg.src = logoUrl;
+                logoImg.onload = () => {
+                    operatorSection.style.display = 'block';
+                };
+                logoImg.onerror = () => {
+                    operatorSection.style.display = 'none';
+                };
+
+            } catch (error) {
+                console.error('Erreur accès attachement:', error);
+                operatorSection.style.display = 'none';
+            }
+        }
+
+        // Fonction pour mettre à jour tous les contenus
+        async function updateContent(mapped) {
+            if (mapped && mapped.intitule_officiel) {
+                const intitule = mapped.intitule_officiel.replace(/\n/g, '<br>');
+                document.getElementById('intitule-officiel').innerHTML = intitule;
+            } else {
+                document.getElementById('intitule-officiel').innerHTML = 'République<br>Française';
+            }
+
+            if (mapped && mapped.nom_service) {
+                document.getElementById('nom-service').textContent = mapped.nom_service;
+            } else {
+                document.getElementById('nom-service').textContent = '';
+            }
+
+            if (mapped && mapped.baseline) {
+                document.getElementById('baseline').textContent = mapped.baseline;
+            } else {
+                document.getElementById('baseline').textContent = '';
+            }
+
+            if (mapped && mapped.logo) {
+                await updateLogo(mapped.logo);
+            } else {
+                document.getElementById('operator-section').style.display = 'none';
+            }
+        }
+
+        // Mise à jour des données - prend toujours le premier enregistrement
+        grist.onRecords(async function (records, mappings) {
             if (records && records.length > 0) {
                 const mapped = grist.mapColumnNames(records[0], mappings);
-
-                if (mapped) {
-                    // Intitulé officiel - préserver les retours à la ligne existants ou valeur par défaut
-                    if (mapped.intitule_officiel) {
-                        // Remplacer les retours à la ligne (\n) par des <br>
-                        const intitule = mapped.intitule_officiel.replace(/\n/g, '<br>');
-                        document.getElementById('intitule-officiel').innerHTML = intitule;
-                    } else {
-                        document.getElementById('intitule-officiel').innerHTML = 'République<br>Française';
-                    }
-
-                    // Nom du service
-                    document.getElementById('nom-service').textContent = mapped.nom_service || '';
-
-                    // Baseline
-                    document.getElementById('baseline').textContent = mapped.baseline || '';
-                }
+                await updateContent(mapped);
+            } else {
+                await updateContent(null);
             }
         });
     </script>
-
 </body>
 
 </html>
