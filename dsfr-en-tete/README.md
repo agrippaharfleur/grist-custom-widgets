@@ -26,7 +26,7 @@ Widget personnalisé affichant un en-tête conforme au Système de Design de l'�
 
 ## Fonctionnalités
 
-- Affichage dynamique de l'intitulé officiel, nom du service et baseline
+- Affichage dynamique de l'intitulé officiel, nom du service, baseline et logo d'un service
 - Valeur par défaut "République Française" si aucun intitulé n'est renseigné
 - Respect des retours à la ligne dans les cellules Grist
 - Style DSFR officiel avec hover désactivé
@@ -35,9 +35,10 @@ Widget personnalisé affichant un en-tête conforme au Système de Design de l'�
 
 ### Colonnes attendues (toutes facultatives)
 
-1. **Intitulé officiel** - Texte affiché dans le logo (défaut: "République Française")
+1. **Bloc marque** - Texte affiché dans le bloc marque de l'État (défaut: "République Française")
 2. **Nom du service** - Titre principal
 3. **Baseline** - Sous-titre ou précisions
+4. **Logo** - Si vous souhaitez ajouter un logo supplémentaire
 
 ### Installation
 
