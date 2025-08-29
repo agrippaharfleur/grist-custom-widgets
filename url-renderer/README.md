@@ -2,7 +2,7 @@
 
 A clean, simple widget for Grist that displays URLs in an embedded iframe. Perfect for viewing web content, documents, or any URL-based resources directly within your Grist interface.
 
-[🔗 Try it here](https://agrippaharfleur.github.io/grist-custom-widgets/url-renderer/)
+[🔗 Try it here](https://docs.getgrist.com/6wF1LMEkA2J6/Custom-Widget-Portfolio/p/3)
 
 ## Features
 
@@ -18,6 +18,7 @@ A clean, simple widget for Grist that displays URLs in an embedded iframe. Perfe
 
 1. Create a new custom URL widget in your Grist document
 2. Use this repository URL as the widget source: `https://agrippaharfleur.github.io/grist-custom-widgets/url-renderer/`
+
 3. Configure the widget to connect to your URL column
 
 ### Option 2: Manual Installation
