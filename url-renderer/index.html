@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>URL Renderer Widget</title>
+    <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: system-ui, sans-serif;
+        }
+
+        /* GitHub-style error messages */
+        .error {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+            margin: 16px;
+            background-color: #ffebe9;
+            border: 1px solid rgba(207, 34, 46, 0.2);
+            border-left: 4px solid #cf222e;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #cf222e;
+        }
+
+        .error::before {
+            content: "⚠";
+            font-size: 16px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .error-content {
+            flex: 1;
+        }
+
+        .error-title {
+            font-weight: 600;
+            margin: 0 0 4px 0;
+        }
+
+        .error-message {
+            margin: 0;
+            color: #656d76;
+            font-size: 13px;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100vh;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="content">
+        <div class="error">
+            <div class="error-content">
+                <div class="error-title">Configuration Required</div>
+                <div class="error-message">Select a URL column in the configuration panel</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Grist initialization
+        grist.ready({
+            columns: [{
+                name: "url",
+                title: "URL Column",
+                type: "Text",
+                description: "Column containing URLs to display"
+            }],
+            requiredAccess: "read table"
+        });
+
+        // Content updates
+        grist.onRecord((record, mappings) => {
+            const mapped = grist.mapColumnNames(record);
+            const content = document.getElementById('content');
+
+            if (!mapped || !mapped.url) {
+                content.innerHTML = `
+                    <div class="error">
+                        <div class="error-content">
+                            <div class="error-title">No URL Found</div>
+                            <div class="error-message">The cell is empty or the column is not configured</div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Simple URL validation
+            try {
+                new URL(mapped.url);
+                content.innerHTML = `<iframe src="${mapped.url}" title="URL Content"></iframe>`;
+            } catch (e) {
+                content.innerHTML = `
+                    <div class="error">
+                        <div class="error-content">
+                            <div class="error-title">Invalid URL</div>
+                            <div class="error-message">The URL format is not valid</div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+
+</html>
