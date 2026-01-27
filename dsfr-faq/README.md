@@ -41,7 +41,7 @@ Le DSFR est exclusivement réservé aux services de l'État français :
 
 | Colonne | Type | Description | Exemple |
 |---------|------|-------------|---------|
-| `Intitule_Ministere` | Texte | Intitulé affiché dans le header et footer | `Ministère\nde l'Europe\net des affaires\nétrangères` |
+| `Intitule_Officiel` | Texte | Intitulé affiché dans le header et footer | `République\nfrançaise` |
 | `Description_Footer` | Texte | Description affichée dans le pied de page | `Vous ne trouvez pas de réponse ? Contactez le support via "Faire un retour".` |
 
 💡 **Note** : Ces colonnes n'ont besoin d'être remplies que sur **la première ligne** de votre table. Utilisez `\n` pour les retours à la ligne.
