@@ -156,12 +156,11 @@
         const categorie = mapped.Categorie || 'Autre';
         
         if (!categories[categorie]) {
-          categories[categorie] = {
-            name: categorie,
-            icon: mapped.Icone_Categorie || '📌',
+        categories[categorie] = {
+            name: categorie,  // ✅ Contient déjà l'emoji
             order: mapped.Ordre_Categorie || 999,
             questions: []
-          };
+        };
         }
         
         categories[categorie].questions.push({
@@ -183,10 +182,9 @@
         const categoryId = generateId(category.name, catIndex);
         
         html += `
-          <div class="faq-category" data-category="${escapeHtml(categoryId)}">
+        <div class="faq-category" data-category="${escapeHtml(categoryId)}">
             <div class="category-title">
-              <span class="category-icon">${escapeHtml(category.icon)}</span>
-              <h2 class="fr-h4 fr-mb-0">${escapeHtml(category.name)}</h2>
+            <h2 class="fr-h4 fr-mb-0">${escapeHtml(category.name)}</h2>
             </div>
             
             <div class="fr-accordions-group">
