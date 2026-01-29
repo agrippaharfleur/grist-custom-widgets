@@ -87,13 +87,13 @@ Pour que la sélection persiste lors de la navigation :
 1. **Ouvrir la configuration** :
    - Cliquer sur les 3 points du widget → **Widget options**
    - Sélectionnez **Ouvrir la configuration**
-
-<img width="763" height="147" alt="Capture d’écran 2026-01-29 à 16 01 37" src="https://github.com/user-attachments/assets/f31c2707-0107-4ec0-8a5e-c04e87521d7c" />
+<img width="177" height="304" alt="Capture d’écran 2026-01-29 à 16 04 40" src="https://github.com/user-attachments/assets/f229e509-0fe2-49b4-ad7e-c3fed649353d" />
 
 2. **Définir un Session ID** :
    - Entrer un identifiant unique de votre choix (ex: `"selection_programme"`)
    - Cliquer sur **Appliquer**
    - **Enregistrer** les nouveaux paramètres de la vue
+<img width="763" height="147" alt="Capture d’écran 2026-01-29 à 16 01 37" src="https://github.com/user-attachments/assets/f31c2707-0107-4ec0-8a5e-c04e87521d7c" />
 
 3. **Répéter sur chaque page** :
    - Ajouter ou dupliquer le widget dropdown sur les autres pages
