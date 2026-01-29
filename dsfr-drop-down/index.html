@@ -53,18 +53,37 @@
       --idle: transparent;
       --hover: var(--background-contrast-grey-hover);
       --active: var(--background-contrast-grey-active);
+
+      background-color: var(--background-contrast-grey);
+      
+
+      /* 1. Définition du SVG de la flèche */
       --data-uri-svg: url(data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23161616' d='m12 13.1 5-4.9 1.4 1.4-6.4 6.3-6.4-6.4L7 8.1l5 5z'/%3E%3C/svg%3E);
+      
+      /* 2. Supprimer la flèche native du navigateur */
       -webkit-appearance: none;
       -moz-appearance: none;
       appearance: none;
-      background-color: var(--background-contrast-grey);
+      
+      /* 3. Appliquer le SVG comme image de fond */
       background-image: var(--data-uri-svg);
+      
+      /* 4. Positionner la flèche : 1rem du bord droit, centrée verticalement */
       background-position: calc(100% - 1rem) 50%;
+      
+      /* 5. Pas de répétition */
       background-repeat: no-repeat;
+      
+      /* 6. Taille de la flèche : 1rem x 1rem */
       background-size: 1rem 1rem;
+      
+      /* 7. Padding à droite (2.5rem) pour laisser de l'espace à la flèche */
+      padding: .5rem 2.5rem .5rem 1rem;
+
+
+
       color: var(--text-default-grey);
 
-      padding: 0 2rem 0 0.5rem;
       display: block;
       font-size: 1rem;
       width: 100%;
