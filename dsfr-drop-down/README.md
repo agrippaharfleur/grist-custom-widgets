@@ -31,6 +31,9 @@ Le DSFR est exclusivement réservé aux services de l'État français :
 * ✅ **Menu déroulant compact** avec design DSFR (typographie Marianne, couleurs officielles)
 * ✅ **Synchronisation entre pages** : la sélection persiste lors de la navigation
 
+<img width="767" height="72" alt="Capture d’écran 2026-01-29 à 16 00 57" src="https://github.com/user-attachments/assets/43a24a39-965b-44ec-b5ff-9e97859e0a61" />
+<img width="764" height="441" alt="Capture d’écran 2026-01-29 à 16 01 13" src="https://github.com/user-attachments/assets/249da58c-6e90-4300-8e4d-cf564325088b" />
+
 ---
 
 ## 📋 Configuration
@@ -84,6 +87,8 @@ Pour que la sélection persiste lors de la navigation :
 1. **Ouvrir la configuration** :
    - Cliquer sur les 3 points du widget → **Widget options**
    - Sélectionnez **Ouvrir la configuration**
+
+<img width="763" height="147" alt="Capture d’écran 2026-01-29 à 16 01 37" src="https://github.com/user-attachments/assets/f31c2707-0107-4ec0-8a5e-c04e87521d7c" />
 
 2. **Définir un Session ID** :
    - Entrer un identifiant unique de votre choix (ex: `"selection_programme"`)
