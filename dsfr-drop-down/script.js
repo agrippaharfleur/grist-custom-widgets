@@ -1,19 +1,9 @@
-function showError(msg) {
-  let el = document.getElementById('error');
-  if (!msg) {
-    el.style.display = 'none';
-  } else {
-    el.innerHTML = msg;
-    el.style.display = 'block';
-  }
-}
-
 function updateDropdown(options) {
   const dropdown = document.getElementById('dropdown');
   dropdown.innerHTML = '';
   if (options.length === 0) {
     const optionElement = document.createElement('option');
-    optionElement.textContent = 'No options available';
+    optionElement.textContent = 'Aucune option disponible';
     dropdown.appendChild(optionElement);
   } else {
     options.forEach((option, index) => {
@@ -35,7 +25,7 @@ function initGrist() {
   let sessionID = "";
 
   grist.ready({
-    columns: [{ name: "OptionsToSelect", title: 'Options to select', type: 'Any' }],
+    columns: [{ name: "OptionsToSelect", title: 'Options à sélectionner', type: 'Any' }],
     requiredAccess: 'read table',
     allowSelectBy: true,
     onEditOptions() {
@@ -55,7 +45,6 @@ function initGrist() {
 
   grist.onRecords(function (records, mappings) {
     if (!records || records.length === 0) {
-      showError("No records received");
       updateDropdown([]);
       return;
     }
@@ -63,12 +52,8 @@ function initGrist() {
     allRecords = records;
     const mapped = grist.mapColumnNames(records);
 
-    showError("");
     const options = mapped.map(record => record.OptionsToSelect).filter(option => option !== null && option !== undefined);
     
-    if (options.length === 0) {
-      showError("No valid options found");
-    }
     updateDropdown(options);
 
     //if session ID defined, use it to auto select the dropdown value
