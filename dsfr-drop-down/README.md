@@ -111,7 +111,6 @@ Pour que la sélection persiste lors de la navigation :
 
 ## 📚 Ressources
 
-* [Widget original](https://github.com/Varamil/grist-widget/tree/main/drop-down) par Varamil
 * [Documentation DSFR](https://www.systeme-de-design.gouv.fr/)
 * [Documentation Grist Custom Widgets](https://support.getgrist.com/widget-custom/)
 * [Circulaire n°6411-SG du 7 juillet 2023](https://www.legifrance.gouv.fr/)
