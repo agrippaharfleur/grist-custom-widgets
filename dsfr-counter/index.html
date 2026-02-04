@@ -132,7 +132,7 @@
             </div>
         </div>
 
-        <div class="fr-checkbox-group fr-mt-2w">
+        <div class="fr-checkbox-group fr-mt-2w" id="euroCheckboxGroup">
             <input type="checkbox" id="euroCheckbox">
             <label class="fr-label" for="euroCheckbox">Afficher le symbole € (pour les calculs numériques)</label>
         </div>
@@ -214,6 +214,20 @@
             return false;
         }
         
+        // Gérer la visibilité de la checkbox €
+        function updateEuroCheckboxVisibility() {
+            const calculSelect = document.getElementById('calculSelect');
+            const euroCheckboxGroup = document.getElementById('euroCheckboxGroup');
+            const typeCalcul = calculSelect.value;
+            
+            // Masquer si c'est un calcul de pourcentage
+            if (typeCalcul.startsWith('percent-')) {
+                euroCheckboxGroup.style.display = 'none';
+            } else {
+                euroCheckboxGroup.style.display = 'block';
+            }
+        }
+        
         // Gérer l'état du select de calcul selon le mapping
         function updateCalculSelectState() {
             const calculSelect = document.getElementById('calculSelect');
@@ -264,6 +278,9 @@
                 nonNumericMessage.style.display = 'block';
                 calculGroup.classList.add('fr-select-group--info');
             }
+            
+            // Mettre à jour la visibilité de la checkbox €
+            updateEuroCheckboxVisibility();
         }
         
         // Fonctions de calcul
@@ -358,7 +375,10 @@
         function setupPreviewListeners() {
             document.getElementById("labelInput").addEventListener('input', updatePreview);
             document.getElementById("couleurSelect").addEventListener('change', updatePreview);
-            document.getElementById("calculSelect").addEventListener('change', updatePreview);
+            document.getElementById("calculSelect").addEventListener('change', function() {
+                updateEuroCheckboxVisibility();
+                updatePreview();
+            });
             document.getElementById("euroCheckbox").addEventListener('change', updatePreview);
         }
         
