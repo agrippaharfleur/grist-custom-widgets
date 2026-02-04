@@ -31,6 +31,9 @@ Le DSFR est exclusivement réservé aux services de l'État français :
 * ✅ **Menu déroulant compact** avec design DSFR (typographie Marianne, couleurs officielles)
 * ✅ **Synchronisation entre pages** : la sélection persiste lors de la navigation
 
+<img width="767" height="72" alt="Capture d’écran 2026-01-29 à 16 00 57" src="https://github.com/user-attachments/assets/43a24a39-965b-44ec-b5ff-9e97859e0a61" />
+<img width="764" height="441" alt="Capture d’écran 2026-01-29 à 16 01 13" src="https://github.com/user-attachments/assets/249da58c-6e90-4300-8e4d-cf564325088b" />
+
 ---
 
 ## 📋 Configuration
@@ -84,11 +87,13 @@ Pour que la sélection persiste lors de la navigation :
 1. **Ouvrir la configuration** :
    - Cliquer sur les 3 points du widget → **Widget options**
    - Sélectionnez **Ouvrir la configuration**
+<img width="177" height="304" alt="Capture d’écran 2026-01-29 à 16 04 40" src="https://github.com/user-attachments/assets/f229e509-0fe2-49b4-ad7e-c3fed649353d" />
 
 2. **Définir un Session ID** :
    - Entrer un identifiant unique de votre choix (ex: `"selection_programme"`)
    - Cliquer sur **Appliquer**
    - **Enregistrer** les nouveaux paramètres de la vue
+<img width="763" height="147" alt="Capture d’écran 2026-01-29 à 16 01 37" src="https://github.com/user-attachments/assets/f31c2707-0107-4ec0-8a5e-c04e87521d7c" />
 
 3. **Répéter sur chaque page** :
    - Ajouter ou dupliquer le widget dropdown sur les autres pages
@@ -106,7 +111,6 @@ Pour que la sélection persiste lors de la navigation :
 
 ## 📚 Ressources
 
-* [Widget original](https://github.com/Varamil/grist-widget/tree/main/drop-down) par Varamil
 * [Documentation DSFR](https://www.systeme-de-design.gouv.fr/)
 * [Documentation Grist Custom Widgets](https://support.getgrist.com/widget-custom/)
 * [Circulaire n°6411-SG du 7 juillet 2023](https://www.legifrance.gouv.fr/)
