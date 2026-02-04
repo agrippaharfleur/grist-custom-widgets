@@ -34,12 +34,54 @@
         .fr-callout .counter-label {
             color: inherit;
         }
+
+        #config {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div class="fr-callout" id="callout">
-        <p class="fr-callout__title counter-value" id="rowCount">0</p>
-        <p class="counter-label" id="rowLabel">Commandes en brouillon</p>
+    <!-- Mode normal : affichage du compteur -->
+    <div id="container">
+        <div class="fr-callout" id="callout">
+            <p class="fr-callout__title counter-value" id="rowCount">0</p>
+            <p class="counter-label" id="rowLabel">Commandes en brouillon</p>
+        </div>
+    </div>
+
+    <!-- Mode configuration -->
+    <div id="config">
+        <div class="fr-input-group">
+            <label class="fr-label" for="labelInput">Texte du label</label>
+            <input class="fr-input" type="text" id="labelInput" placeholder="Commandes en brouillon">
+        </div>
+
+        <div class="fr-input-group fr-mt-2w">
+            <label class="fr-label" for="couleurSelect">Couleur du callout</label>
+            <select class="fr-select" id="couleurSelect">
+                <option value="">Gris (défaut)</option>
+                <option value="blue-france">Bleu France</option>
+                <option value="green-tilleul-verveine">Vert tilleul verveine</option>
+                <option value="green-bourgeon">Vert bourgeon</option>
+                <option value="green-emeraude">Vert émeraude</option>
+                <option value="green-menthe">Vert menthe</option>
+                <option value="green-archipel">Vert archipel</option>
+                <option value="blue-ecume">Bleu écume</option>
+                <option value="blue-cumulus">Bleu cumulus</option>
+                <option value="purple-glycine">Violet glycine</option>
+                <option value="pink-macaron">Rose macaron</option>
+                <option value="pink-tuile">Rose tuile (rouge)</option>
+                <option value="yellow-tournesol">Jaune tournesol</option>
+                <option value="yellow-moutarde">Jaune moutarde</option>
+                <option value="orange-terre-battue">Orange terre battue</option>
+                <option value="brown-cafe-creme">Brun café crème</option>
+                <option value="brown-caramel">Brun caramel</option>
+                <option value="brown-opera">Brun opéra</option>
+                <option value="beige-gris-galet">Beige gris galet</option>
+            </select>
+        </div>
+
+        <button class="fr-btn fr-mt-2w" onclick="saveOptions()">Enregistrer</button>
     </div>
 
     <!-- DSFR JavaScript -->
@@ -62,57 +104,62 @@
         
         console.log('✓ Module de sécurité chargé');
         
-        // Configuration des options du widget
-        grist.ready({ 
-            requiredAccess: 'read table',
-            allowSelectBy: true,
-            onEditOptions: function() {
-                grist.sectionApi.configure({
-                    columns: [
-                        {
-                            name: 'couleur',
-                            title: 'Couleur du callout',
-                            type: 'Text',
-                            optional: true,
-                            description: 'Choisir une couleur DSFR'
-                        },
-                        {
-                            name: 'label',
-                            title: 'Texte du label',
-                            type: 'Text',
-                            optional: true,
-                            description: 'Texte affiché sous le compteur'
-                        }
-                    ]
-                });
-            }
-        });
+        // Variables globales pour les options
+        let currentLabel = "Commandes en brouillon";
+        let currentCouleur = "beige-gris-galet";
+        
+        // Sauvegarder les options
+        function saveOptions() {
+            const label = document.getElementById("labelInput").value;
+            const couleur = document.getElementById("couleurSelect").value;
+            
+            grist.widgetApi.setOption('label', label);
+            grist.widgetApi.setOption('couleur', couleur);
+        }
         
         // Appliquer les options
         function appliquerOptions(options) {
             const callout = document.getElementById('callout');
-            const label = document.getElementById('rowLabel');
+            const labelElement = document.getElementById('rowLabel');
             
-            // Appliquer la couleur
-            if (options && options.couleur) {
-                // Retirer toutes les classes de couleur existantes
-                callout.className = 'fr-callout';
-                // Ajouter la nouvelle classe de couleur
-                callout.classList.add('fr-callout--' + options.couleur);
-            } else {
-                callout.className = 'fr-callout fr-callout--beige-gris-galet';
-            }
+            options = options || {};
+            currentLabel = options.label || "Commandes en brouillon";
+            currentCouleur = options.couleur || "beige-gris-galet";
             
             // Appliquer le label
-            if (options && options.label) {
-                label.textContent = echapperHTML(options.label);
-            } else {
-                label.textContent = 'Commandes en brouillon';
+            labelElement.textContent = echapperHTML(currentLabel);
+            
+            // Appliquer la couleur
+            callout.className = 'fr-callout';
+            if (currentCouleur) {
+                callout.classList.add('fr-callout--' + currentCouleur);
             }
         }
         
-        // Charger les options au démarrage
-        grist.onOptions(appliquerOptions);
+        // Initialisation Grist
+        grist.ready({ 
+            requiredAccess: 'read table',
+            allowSelectBy: true,
+            onEditOptions() {
+                // Passer en mode configuration
+                document.getElementById("container").style.display = 'none';
+                document.getElementById("config").style.display = '';
+                
+                // Pré-remplir les champs avec les valeurs actuelles
+                document.getElementById("labelInput").value = currentLabel;
+                document.getElementById("couleurSelect").value = currentCouleur;
+            }
+        });
+        
+        // Charger les options
+        grist.onOptions((customOptions) => {
+            // Repasser en mode normal
+            document.getElementById("container").style.display = '';
+            document.getElementById("config").style.display = 'none';
+            
+            // Appliquer les options
+            appliquerOptions(customOptions);
+        });
         
         // Mise à jour du compteur
         grist.onRecords(function(records) {
