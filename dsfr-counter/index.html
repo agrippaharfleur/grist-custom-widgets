@@ -58,10 +58,6 @@
             display: flex;
             gap: 1rem;
         }
-        
-        .fr-alert {
-            margin-top: 0.5rem;
-        }
     </style>
 </head>
 <body>
@@ -104,9 +100,9 @@
             </select>
         </div>
 
-        <div class="fr-input-group fr-mt-2w">
+        <div class="fr-select-group fr-mt-2w" id="calculGroup">
             <label class="fr-label" for="calculSelect">Type de calcul</label>
-            <select class="fr-select" id="calculSelect">
+            <select class="fr-select" aria-describedby="calcul-messages" id="calculSelect">
                 <optgroup label="Tous les champs">
                     <option value="empty">Vide</option>
                     <option value="filled" selected>Rempli</option>
@@ -123,14 +119,12 @@
                 </optgroup>
             </select>
             
-            <!-- Message d'information si aucune colonne mappée -->
-            <div class="fr-alert fr-alert--info fr-alert--sm" id="noColumnWarning" style="display: none;">
-                <p class="fr-alert__title">Aucune colonne sélectionnée</p>
-                <p>Utilisez le panneau "Select By" pour choisir une colonne. Sans colonne, seul le calcul "Rempli" est disponible et compte le nombre total de lignes.</p>
+            <div class="fr-messages-group" id="calcul-messages" aria-live="polite">
+                <!-- Message affiché quand aucune colonne n'est mappée -->
+                <p class="fr-message fr-message--info" id="no-column-message" style="display: none;">
+                    Aucune colonne sélectionnée dans "Select By". Seul le calcul "Rempli" est disponible et compte le nombre total de lignes.
+                </p>
             </div>
-            
-            <!-- Message normal -->
-            <p class="fr-hint-text" id="normalHint">Utiliser le panneau "Select By" pour choisir la colonne à calculer</p>
         </div>
 
         <div class="fr-checkbox-group fr-mt-2w">
@@ -196,8 +190,8 @@
         // Gérer l'état du select de calcul selon le mapping
         function updateCalculSelectState() {
             const calculSelect = document.getElementById('calculSelect');
-            const noColumnWarning = document.getElementById('noColumnWarning');
-            const normalHint = document.getElementById('normalHint');
+            const noColumnMessage = document.getElementById('no-column-message');
+            const calculGroup = document.getElementById('calculGroup');
             
             if (!hasColumnMapping) {
                 // Bloquer tous les calculs sauf "Rempli"
@@ -210,18 +204,18 @@
                 // Forcer la sélection sur "Rempli"
                 calculSelect.value = 'filled';
                 
-                // Afficher le message d'avertissement
-                noColumnWarning.style.display = 'block';
-                normalHint.style.display = 'none';
+                // Afficher le message d'information
+                noColumnMessage.style.display = 'block';
+                calculGroup.classList.add('fr-select-group--info');
             } else {
                 // Débloquer tous les calculs
                 Array.from(calculSelect.options).forEach(option => {
                     option.disabled = false;
                 });
                 
-                // Masquer le message d'avertissement
-                noColumnWarning.style.display = 'none';
-                normalHint.style.display = 'block';
+                // Masquer le message d'information
+                noColumnMessage.style.display = 'none';
+                calculGroup.classList.remove('fr-select-group--info');
             }
         }
         
