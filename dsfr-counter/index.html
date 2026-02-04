@@ -53,6 +53,11 @@
         #preview .counter-value {
             font-size: 2rem;
         }
+        
+        .button-group {
+            display: flex;
+            gap: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -60,7 +65,7 @@
     <div id="container">
         <div class="fr-callout" id="callout">
             <p class="fr-callout__title counter-value" id="rowCount">0</p>
-            <p class="counter-label" id="rowLabel">Commandes en brouillon</p>
+            <p class="counter-label" id="rowLabel">label</p>
         </div>
     </div>
 
@@ -68,7 +73,7 @@
     <div id="config">
         <div class="fr-input-group">
             <label class="fr-label" for="labelInput">Texte du label</label>
-            <input class="fr-input" type="text" id="labelInput" placeholder="Commandes en brouillon">
+            <input class="fr-input" type="text" id="labelInput" placeholder="label">
         </div>
 
         <div class="fr-input-group fr-mt-2w">
@@ -123,14 +128,17 @@
             <label class="fr-label" for="euroCheckbox">Afficher le symbole € (pour les calculs numériques)</label>
         </div>
 
-        <button class="fr-btn fr-mt-2w" onclick="saveOptions()">Enregistrer</button>
+        <div class="button-group fr-mt-2w">
+            <button class="fr-btn" onclick="saveOptions()">Enregistrer</button>
+            <button class="fr-btn fr-btn--secondary" onclick="cancelOptions()">Annuler</button>
+        </div>
 
         <!-- Prévisualisation -->
         <div id="preview">
             <p class="fr-text--sm fr-text--bold fr-mb-1w">Prévisualisation :</p>
             <div class="fr-callout" id="previewCallout">
                 <p class="fr-callout__title counter-value" id="previewCount">42</p>
-                <p class="counter-label" id="previewLabel">Commandes en brouillon</p>
+                <p class="counter-label" id="previewLabel">label</p>
             </div>
         </div>
     </div>
@@ -160,8 +168,8 @@
         console.log('✓ Module de sécurité chargé');
         
         // Variables globales
-        let currentLabel = "Commandes en brouillon";
-        let currentCouleur = "beige-gris-galet";
+        let currentLabel = "label";
+        let currentCouleur = "";
         let currentCalcul = "filled";
         let currentEuro = false;
         let currentRecords = [];
@@ -236,7 +244,7 @@
         
         // Mise à jour de la prévisualisation
         function updatePreview() {
-            const label = document.getElementById("labelInput").value || "Commandes en brouillon";
+            const label = document.getElementById("labelInput").value || "label";
             const couleur = document.getElementById("couleurSelect").value;
             const euro = document.getElementById("euroCheckbox").checked;
             
@@ -265,6 +273,13 @@
             document.getElementById("euroCheckbox").addEventListener('change', updatePreview);
         }
         
+        // Fermer le panneau de configuration
+        function closeConfigPanel() {
+            document.getElementById("container").style.display = 'block';
+            document.getElementById("config").style.display = 'none';
+            grist.widgetApi.clearOptions();
+        }
+        
         // Sauvegarder les options
         function saveOptions() {
             const label = document.getElementById("labelInput").value;
@@ -276,6 +291,14 @@
             grist.widgetApi.setOption('couleur', couleur);
             grist.widgetApi.setOption('calcul', calcul);
             grist.widgetApi.setOption('euro', euro);
+            
+            // Fermer le panneau après sauvegarde
+            closeConfigPanel();
+        }
+        
+        // Annuler les modifications
+        function cancelOptions() {
+            closeConfigPanel();
         }
         
         // Appliquer les options
@@ -284,10 +307,12 @@
             const labelElement = document.getElementById('rowLabel');
             
             options = options || {};
-            currentLabel = options.label || "Commandes en brouillon";
-            currentCouleur = options.couleur || "beige-gris-galet";
-            currentCalcul = options.calcul || "filled";
-            currentEuro = options.euro || false;
+            
+            // Utiliser !== undefined pour permettre les valeurs vides
+            currentLabel = options.label !== undefined ? options.label : "label";
+            currentCouleur = options.couleur !== undefined ? options.couleur : "";
+            currentCalcul = options.calcul !== undefined ? options.calcul : "filled";
+            currentEuro = options.euro !== undefined ? options.euro : false;
             
             // Appliquer le label
             labelElement.textContent = echapperHTML(currentLabel);
@@ -318,7 +343,9 @@
                 columns: [{ 
                     name: "ColonneCalcul", 
                     title: 'Colonne pour le calcul', 
-                    type: 'Any'
+                    type: 'Any',
+                    optional: true,
+                    description: 'Colonne sur laquelle effectuer le calcul (optionnel pour "Filled")'
                 }],
                 requiredAccess: 'read table',
                 allowSelectBy: true,
