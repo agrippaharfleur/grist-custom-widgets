@@ -15,6 +15,7 @@
             margin: 0;
             padding: 1rem;
             background-color: var(--background-default-grey);
+            font-family: Marianne, Arial, sans-serif;
         }
         
         .counter-value {
@@ -37,6 +38,9 @@
 
         #config {
             display: none;
+            background-color: var(--background-default-grey);
+            padding: 1rem;
+            height: 100%;
         }
     </style>
 </head>
@@ -137,36 +141,43 @@
         }
         
         // Initialisation Grist
-        grist.ready({ 
-            requiredAccess: 'read table',
-            allowSelectBy: true,
-            onEditOptions() {
-                // Passer en mode configuration
-                document.getElementById("container").style.display = 'none';
-                document.getElementById("config").style.display = '';
-                
-                // Pré-remplir les champs avec les valeurs actuelles
-                document.getElementById("labelInput").value = currentLabel;
-                document.getElementById("couleurSelect").value = currentCouleur;
-            }
-        });
-        
-        // Charger les options
-        grist.onOptions((customOptions) => {
-            // Repasser en mode normal
-            document.getElementById("container").style.display = '';
-            document.getElementById("config").style.display = 'none';
+        function initGrist() {
+            grist.ready({ 
+                requiredAccess: 'read table',
+                allowSelectBy: true,
+                onEditOptions() {
+                    // Passer en mode configuration
+                    document.getElementById("container").style.display = 'none';
+                    document.getElementById("config").style.display = 'block';
+                    
+                    // Pré-remplir les champs avec les valeurs actuelles
+                    document.getElementById("labelInput").value = currentLabel;
+                    document.getElementById("couleurSelect").value = currentCouleur;
+                }
+            });
             
-            // Appliquer les options
-            appliquerOptions(customOptions);
-        });
+            // Charger les options
+            grist.onOptions((customOptions) => {
+                customOptions = customOptions || {};
+                
+                // Repasser en mode normal
+                document.getElementById("container").style.display = 'block';
+                document.getElementById("config").style.display = 'none';
+                
+                // Appliquer les options
+                appliquerOptions(customOptions);
+            });
+            
+            // Mise à jour du compteur
+            grist.onRecords(function(records) {
+                const totalRows = records ? records.length : 0;
+                const formattedCount = formaterNombre(totalRows);
+                document.getElementById('rowCount').textContent = echapperHTML(formattedCount);
+            });
+        }
         
-        // Mise à jour du compteur
-        grist.onRecords(function(records) {
-            const totalRows = records ? records.length : 0;
-            const formattedCount = formaterNombre(totalRows);
-            document.getElementById('rowCount').textContent = echapperHTML(formattedCount);
-        });
+        // Initialiser au chargement du DOM
+        document.addEventListener('DOMContentLoaded', initGrist);
     </script>
 </body>
 </html>
