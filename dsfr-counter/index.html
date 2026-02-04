@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compteur de lignes</title>
+    <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+    
+    <!-- DSFR CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/dsfr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/utility/utilities.min.css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 1rem;
+            background-color: var(--background-default-grey);
+        }
+        
+        .counter-value {
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+        
+        .counter-label {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .fr-callout .counter-value,
+        .fr-callout .counter-label {
+            color: inherit;
+        }
+    </style>
+</head>
+<body>
+    <div class="fr-callout" id="callout">
+        <p class="fr-callout__title counter-value" id="rowCount">0</p>
+        <p class="counter-label" id="rowLabel">Commandes en brouillon</p>
+    </div>
+
+    <!-- DSFR JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/dsfr.module.min.js" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/dsfr.nomodule.min.js" nomodule></script>
+    
+    <script>
+        // Module de sécurité
+        function echapperHTML(texte) {
+            if (!texte && texte !== 0) return '';
+            const div = document.createElement('div');
+            div.textContent = String(texte);
+            return div.innerHTML;
+        }
+        
+        function formaterNombre(nombre) {
+            if (typeof nombre !== 'number' || isNaN(nombre)) return '0';
+            return nombre.toLocaleString('fr-FR');
+        }
+        
+        console.log('✓ Module de sécurité chargé');
+        
+        // Configuration des options du widget
+        grist.ready({ 
+            requiredAccess: 'read table',
+            allowSelectBy: true,
+            onEditOptions: function() {
+                grist.sectionApi.configure({
+                    columns: [
+                        {
+                            name: 'couleur',
+                            title: 'Couleur du callout',
+                            type: 'Text',
+                            optional: true,
+                            description: 'Choisir une couleur DSFR'
+                        },
+                        {
+                            name: 'label',
+                            title: 'Texte du label',
+                            type: 'Text',
+                            optional: true,
+                            description: 'Texte affiché sous le compteur'
+                        }
+                    ]
+                });
+            }
+        });
+        
+        // Appliquer les options
+        function appliquerOptions(options) {
+            const callout = document.getElementById('callout');
+            const label = document.getElementById('rowLabel');
+            
+            // Appliquer la couleur
+            if (options && options.couleur) {
+                // Retirer toutes les classes de couleur existantes
+                callout.className = 'fr-callout';
+                // Ajouter la nouvelle classe de couleur
+                callout.classList.add('fr-callout--' + options.couleur);
+            } else {
+                callout.className = 'fr-callout fr-callout--beige-gris-galet';
+            }
+            
+            // Appliquer le label
+            if (options && options.label) {
+                label.textContent = echapperHTML(options.label);
+            } else {
+                label.textContent = 'Commandes en brouillon';
+            }
+        }
+        
+        // Charger les options au démarrage
+        grist.onOptions(appliquerOptions);
+        
+        // Mise à jour du compteur
+        grist.onRecords(function(records) {
+            const totalRows = records ? records.length : 0;
+            const formattedCount = formaterNombre(totalRows);
+            document.getElementById('rowCount').textContent = echapperHTML(formattedCount);
+        });
+    </script>
+</body>
+</html>
