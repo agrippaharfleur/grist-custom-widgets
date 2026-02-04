@@ -41,6 +41,17 @@
             background-color: var(--background-default-grey);
             padding: 1rem;
             height: 100%;
+            overflow-y: auto;
+        }
+
+        #preview {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-default-grey);
+        }
+
+        #preview .counter-value {
+            font-size: 2rem;
         }
     </style>
 </head>
@@ -84,7 +95,44 @@
             </select>
         </div>
 
+        <div class="fr-input-group fr-mt-2w">
+            <label class="fr-label" for="calculSelect">Type de calcul</label>
+            <select class="fr-select" id="calculSelect">
+                <optgroup label="Tous les champs">
+                    <option value="empty">Empty</option>
+                    <option value="filled" selected>Filled</option>
+                    <option value="unique">Unique</option>
+                    <option value="percent-empty">Percent Empty</option>
+                    <option value="percent-filled">Percent Filled</option>
+                    <option value="percent-unique">Percent Unique</option>
+                </optgroup>
+                <optgroup label="Champs numériques uniquement">
+                    <option value="sum">Sum</option>
+                    <option value="average">Average</option>
+                    <option value="median">Median</option>
+                    <option value="min">Min</option>
+                    <option value="max">Max</option>
+                    <option value="range">Range</option>
+                </optgroup>
+            </select>
+            <p class="fr-hint-text">Note : Utiliser le panneau "Select By" pour choisir la colonne à calculer</p>
+        </div>
+
+        <div class="fr-checkbox-group fr-mt-2w">
+            <input type="checkbox" id="euroCheckbox">
+            <label class="fr-label" for="euroCheckbox">Afficher le symbole € (pour les calculs numériques)</label>
+        </div>
+
         <button class="fr-btn fr-mt-2w" onclick="saveOptions()">Enregistrer</button>
+
+        <!-- Prévisualisation -->
+        <div id="preview">
+            <p class="fr-text--sm fr-text--bold fr-mb-1w">Prévisualisation :</p>
+            <div class="fr-callout" id="previewCallout">
+                <p class="fr-callout__title counter-value" id="previewCount">42</p>
+                <p class="counter-label" id="previewLabel">Commandes en brouillon</p>
+            </div>
+        </div>
     </div>
 
     <!-- DSFR JavaScript -->
@@ -100,24 +148,134 @@
             return div.innerHTML;
         }
         
-        function formaterNombre(nombre) {
+        function formaterNombre(nombre, avecEuro = false) {
             if (typeof nombre !== 'number' || isNaN(nombre)) return '0';
-            return nombre.toLocaleString('fr-FR');
+            const formatted = nombre.toLocaleString('fr-FR', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            });
+            return avecEuro ? formatted + ' €' : formatted;
         }
         
         console.log('✓ Module de sécurité chargé');
         
-        // Variables globales pour les options
+        // Variables globales
         let currentLabel = "Commandes en brouillon";
         let currentCouleur = "beige-gris-galet";
+        let currentCalcul = "filled";
+        let currentEuro = false;
+        let currentRecords = [];
+        
+        // Fonctions de calcul
+        function calculerValeur(records, typeCalcul) {
+            if (!records || records.length === 0) return 0;
+            
+            const mapped = grist.mapColumnNames(records);
+            
+            switch(typeCalcul) {
+                case 'empty': {
+                    return mapped.filter(r => r.ColonneCalcul == null || r.ColonneCalcul === '').length;
+                }
+                case 'filled': {
+                    // Si pas de colonne mappée, compte toutes les lignes
+                    if (!mapped[0] || !('ColonneCalcul' in mapped[0])) {
+                        return records.length;
+                    }
+                    return mapped.filter(r => r.ColonneCalcul != null && r.ColonneCalcul !== '').length;
+                }
+                case 'unique': {
+                    const values = mapped.map(r => r.ColonneCalcul).filter(v => v != null && v !== '');
+                    return new Set(values).size;
+                }
+                case 'percent-empty': {
+                    const empty = mapped.filter(r => r.ColonneCalcul == null || r.ColonneCalcul === '').length;
+                    return parseFloat((empty / records.length * 100).toFixed(1));
+                }
+                case 'percent-filled': {
+                    const filled = mapped.filter(r => r.ColonneCalcul != null && r.ColonneCalcul !== '').length;
+                    return parseFloat((filled / records.length * 100).toFixed(1));
+                }
+                case 'percent-unique': {
+                    const values = mapped.map(r => r.ColonneCalcul).filter(v => v != null && v !== '');
+                    const unique = new Set(values).size;
+                    return values.length > 0 ? parseFloat((unique / values.length * 100).toFixed(1)) : 0;
+                }
+                case 'sum': {
+                    return mapped.reduce((sum, r) => {
+                        const val = parseFloat(r.ColonneCalcul);
+                        return sum + (isNaN(val) ? 0 : val);
+                    }, 0);
+                }
+                case 'average': {
+                    const values = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v));
+                    return values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+                }
+                case 'median': {
+                    const values = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v)).sort((a, b) => a - b);
+                    if (values.length === 0) return 0;
+                    const mid = Math.floor(values.length / 2);
+                    return values.length % 2 === 0 ? (values[mid - 1] + values[mid]) / 2 : values[mid];
+                }
+                case 'min': {
+                    const values = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v));
+                    return values.length > 0 ? Math.min(...values) : 0;
+                }
+                case 'max': {
+                    const values = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v));
+                    return values.length > 0 ? Math.max(...values) : 0;
+                }
+                case 'range': {
+                    const values = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v));
+                    if (values.length === 0) return 0;
+                    return Math.max(...values) - Math.min(...values);
+                }
+                default:
+                    return records.length;
+            }
+        }
+        
+        // Mise à jour de la prévisualisation
+        function updatePreview() {
+            const label = document.getElementById("labelInput").value || "Commandes en brouillon";
+            const couleur = document.getElementById("couleurSelect").value;
+            const euro = document.getElementById("euroCheckbox").checked;
+            
+            const previewCallout = document.getElementById('previewCallout');
+            const previewLabel = document.getElementById('previewLabel');
+            const previewCount = document.getElementById('previewCount');
+            
+            // Appliquer la couleur
+            previewCallout.className = 'fr-callout';
+            if (couleur) {
+                previewCallout.classList.add('fr-callout--' + couleur);
+            }
+            
+            // Appliquer le label
+            previewLabel.textContent = echapperHTML(label);
+            
+            // Appliquer le format du nombre
+            const exampleValue = 42;
+            previewCount.textContent = euro ? formaterNombre(exampleValue, true) : formaterNombre(exampleValue, false);
+        }
+        
+        // Ajouter les listeners pour la prévisualisation en temps réel
+        function setupPreviewListeners() {
+            document.getElementById("labelInput").addEventListener('input', updatePreview);
+            document.getElementById("couleurSelect").addEventListener('change', updatePreview);
+            document.getElementById("euroCheckbox").addEventListener('change', updatePreview);
+        }
         
         // Sauvegarder les options
         function saveOptions() {
             const label = document.getElementById("labelInput").value;
             const couleur = document.getElementById("couleurSelect").value;
+            const calcul = document.getElementById("calculSelect").value;
+            const euro = document.getElementById("euroCheckbox").checked;
             
             grist.widgetApi.setOption('label', label);
             grist.widgetApi.setOption('couleur', couleur);
+            grist.widgetApi.setOption('calcul', calcul);
+            grist.widgetApi.setOption('euro', euro);
         }
         
         // Appliquer les options
@@ -128,6 +286,8 @@
             options = options || {};
             currentLabel = options.label || "Commandes en brouillon";
             currentCouleur = options.couleur || "beige-gris-galet";
+            currentCalcul = options.calcul || "filled";
+            currentEuro = options.euro || false;
             
             // Appliquer le label
             labelElement.textContent = echapperHTML(currentLabel);
@@ -137,11 +297,29 @@
             if (currentCouleur) {
                 callout.classList.add('fr-callout--' + currentCouleur);
             }
+            
+            // Recalculer avec les nouveaux paramètres
+            if (currentRecords.length > 0) {
+                mettreAJourCompteur(currentRecords);
+            }
+        }
+        
+        // Mettre à jour le compteur
+        function mettreAJourCompteur(records) {
+            currentRecords = records;
+            const valeur = calculerValeur(records, currentCalcul);
+            const formattedCount = formaterNombre(valeur, currentEuro);
+            document.getElementById('rowCount').textContent = echapperHTML(formattedCount);
         }
         
         // Initialisation Grist
         function initGrist() {
             grist.ready({ 
+                columns: [{ 
+                    name: "ColonneCalcul", 
+                    title: 'Colonne pour le calcul', 
+                    type: 'Any'
+                }],
                 requiredAccess: 'read table',
                 allowSelectBy: true,
                 onEditOptions() {
@@ -152,6 +330,11 @@
                     // Pré-remplir les champs avec les valeurs actuelles
                     document.getElementById("labelInput").value = currentLabel;
                     document.getElementById("couleurSelect").value = currentCouleur;
+                    document.getElementById("calculSelect").value = currentCalcul;
+                    document.getElementById("euroCheckbox").checked = currentEuro;
+                    
+                    // Mettre à jour la prévisualisation
+                    updatePreview();
                 }
             });
             
@@ -169,14 +352,15 @@
             
             // Mise à jour du compteur
             grist.onRecords(function(records) {
-                const totalRows = records ? records.length : 0;
-                const formattedCount = formaterNombre(totalRows);
-                document.getElementById('rowCount').textContent = echapperHTML(formattedCount);
+                mettreAJourCompteur(records || []);
             });
         }
         
         // Initialiser au chargement du DOM
-        document.addEventListener('DOMContentLoaded', initGrist);
+        document.addEventListener('DOMContentLoaded', function() {
+            initGrist();
+            setupPreviewListeners();
+        });
     </script>
 </body>
 </html>
