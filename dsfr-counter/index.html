@@ -58,6 +58,10 @@
             display: flex;
             gap: 1rem;
         }
+        
+        .fr-alert {
+            margin-top: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -118,7 +122,15 @@
                     <option value="max">Maximum</option>
                 </optgroup>
             </select>
-            <p class="fr-hint-text">Note : Utiliser le panneau "Select By" pour choisir la colonne à calculer</p>
+            
+            <!-- Message d'information si aucune colonne mappée -->
+            <div class="fr-alert fr-alert--info fr-alert--sm" id="noColumnWarning" style="display: none;">
+                <p class="fr-alert__title">Aucune colonne sélectionnée</p>
+                <p>Utilisez le panneau "Select By" pour choisir une colonne. Sans colonne, seul le calcul "Rempli" est disponible et compte le nombre total de lignes.</p>
+            </div>
+            
+            <!-- Message normal -->
+            <p class="fr-hint-text" id="normalHint">Utiliser le panneau "Select By" pour choisir la colonne à calculer</p>
         </div>
 
         <div class="fr-checkbox-group fr-mt-2w">
@@ -179,6 +191,39 @@
         let currentCalcul = "filled";
         let currentEuro = false;
         let currentRecords = [];
+        let hasColumnMapping = false;
+        
+        // Gérer l'état du select de calcul selon le mapping
+        function updateCalculSelectState() {
+            const calculSelect = document.getElementById('calculSelect');
+            const noColumnWarning = document.getElementById('noColumnWarning');
+            const normalHint = document.getElementById('normalHint');
+            
+            if (!hasColumnMapping) {
+                // Bloquer tous les calculs sauf "Rempli"
+                Array.from(calculSelect.options).forEach(option => {
+                    if (option.value !== 'filled') {
+                        option.disabled = true;
+                    }
+                });
+                
+                // Forcer la sélection sur "Rempli"
+                calculSelect.value = 'filled';
+                
+                // Afficher le message d'avertissement
+                noColumnWarning.style.display = 'block';
+                normalHint.style.display = 'none';
+            } else {
+                // Débloquer tous les calculs
+                Array.from(calculSelect.options).forEach(option => {
+                    option.disabled = false;
+                });
+                
+                // Masquer le message d'avertissement
+                noColumnWarning.style.display = 'none';
+                normalHint.style.display = 'block';
+            }
+        }
         
         // Fonctions de calcul
         function calculerValeur(records, typeCalcul) {
@@ -192,7 +237,7 @@
                 }
                 case 'filled': {
                     // Si pas de colonne mappée, compte toutes les lignes
-                    if (!mapped[0] || !('ColonneCalcul' in mapped[0])) {
+                    if (!hasColumnMapping) {
                         return records.length;
                     }
                     return mapped.filter(r => r.ColonneCalcul != null && r.ColonneCalcul !== '').length;
@@ -347,7 +392,7 @@
                     title: 'Colonne pour le calcul', 
                     type: 'Any',
                     optional: true,
-                    description: 'Colonne sur laquelle effectuer le calcul (optionnel pour "Filled")'
+                    description: 'Colonne sur laquelle effectuer le calcul (optionnel pour "Rempli")'
                 }],
                 requiredAccess: 'read table',
                 allowSelectBy: true,
@@ -361,6 +406,9 @@
                     document.getElementById("couleurSelect").value = currentCouleur;
                     document.getElementById("calculSelect").value = currentCalcul;
                     document.getElementById("euroCheckbox").checked = currentEuro;
+                    
+                    // Mettre à jour l'état du select selon le mapping
+                    updateCalculSelectState();
                     
                     // Mettre à jour la prévisualisation
                     updatePreview();
@@ -380,7 +428,10 @@
             });
             
             // Mise à jour du compteur
-            grist.onRecords(function(records) {
+            grist.onRecords(function(records, mappings) {
+                // Détecter si une colonne est mappée
+                hasColumnMapping = mappings && mappings.ColonneCalcul !== undefined && mappings.ColonneCalcul !== null;
+                
                 mettreAJourCompteur(records || []);
             });
         }
