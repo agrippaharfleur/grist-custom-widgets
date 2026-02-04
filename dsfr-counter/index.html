@@ -103,14 +103,15 @@
         <div class="fr-select-group fr-mt-2w" id="calculGroup">
             <label class="fr-label" for="calculSelect">Type de calcul</label>
             <select class="fr-select" aria-describedby="calcul-messages" id="calculSelect">
+                <option value="row-count" selected>Compteur de lignes</option>
                 <optgroup label="Tous les champs">
                     <option value="empty">Vide</option>
-                    <option value="filled" selected>Rempli</option>
+                    <option value="filled">Rempli</option>
                     <option value="unique">Unique</option>
                     <option value="percent-empty">% Vide</option>
                     <option value="percent-filled">% Rempli</option>
                 </optgroup>
-                <optgroup label="Champs numériques uniquement">
+                <optgroup label="Champs numériques uniquement" id="numericGroup">
                     <option value="sum">Somme</option>
                     <option value="average">Moyenne</option>
                     <option value="median">Médiane</option>
@@ -122,7 +123,11 @@
             <div class="fr-messages-group" id="calcul-messages" aria-live="polite">
                 <!-- Message affiché quand aucune colonne n'est mappée -->
                 <p class="fr-message fr-message--info" id="no-column-message" style="display: none;">
-                    Aucune colonne sélectionnée dans "Select By". Seul le calcul "Rempli" est disponible et compte le nombre total de lignes.
+                    Aucune colonne sélectionnée. Le compteur affiche le nombre total de lignes.
+                </p>
+                <!-- Message affiché quand la colonne n'est pas numérique -->
+                <p class="fr-message fr-message--info" id="non-numeric-message" style="display: none;">
+                    La colonne sélectionnée n'est pas numérique. Les calculs numériques sont désactivés.
                 </p>
             </div>
         </div>
@@ -182,46 +187,93 @@
         // Variables globales
         let currentLabel = "label";
         let currentCouleur = "";
-        let currentCalcul = "filled";
+        let currentCalcul = "row-count";
         let currentEuro = false;
         let currentRecords = [];
         let hasColumnMapping = false;
+        let isNumericColumn = false;
+        
+        // Vérifier si la colonne est numérique
+        function detecterTypeColonne(records) {
+            if (!records || records.length === 0 || !hasColumnMapping) {
+                return false;
+            }
+            
+            const mapped = grist.mapColumnNames(records);
+            
+            // Vérifier les premières valeurs non-nulles
+            for (let i = 0; i < Math.min(10, mapped.length); i++) {
+                const value = mapped[i].ColonneCalcul;
+                if (value != null && value !== '') {
+                    // Si on trouve une valeur, tester si c'est un nombre
+                    return typeof value === 'number' || !isNaN(parseFloat(value));
+                }
+            }
+            
+            // Par défaut, considérer comme non-numérique si aucune valeur trouvée
+            return false;
+        }
         
         // Gérer l'état du select de calcul selon le mapping
         function updateCalculSelectState() {
             const calculSelect = document.getElementById('calculSelect');
             const noColumnMessage = document.getElementById('no-column-message');
+            const nonNumericMessage = document.getElementById('non-numeric-message');
             const calculGroup = document.getElementById('calculGroup');
             
+            // Réinitialiser tous les états
+            Array.from(calculSelect.options).forEach(option => {
+                option.disabled = false;
+            });
+            noColumnMessage.style.display = 'none';
+            nonNumericMessage.style.display = 'none';
+            calculGroup.classList.remove('fr-select-group--info');
+            
             if (!hasColumnMapping) {
-                // Bloquer tous les calculs sauf "Rempli"
+                // Aucune colonne mappée : bloquer tout sauf "Compteur de lignes"
                 Array.from(calculSelect.options).forEach(option => {
-                    if (option.value !== 'filled') {
+                    if (option.value !== 'row-count') {
                         option.disabled = true;
                     }
                 });
                 
-                // Forcer la sélection sur "Rempli"
-                calculSelect.value = 'filled';
+                // Forcer la sélection sur "Compteur de lignes"
+                calculSelect.value = 'row-count';
+                currentCalcul = 'row-count';
                 
-                // Afficher le message d'information
+                // Afficher le message
                 noColumnMessage.style.display = 'block';
                 calculGroup.classList.add('fr-select-group--info');
-            } else {
-                // Débloquer tous les calculs
+                
+            } else if (!isNumericColumn) {
+                // Colonne non-numérique : bloquer les calculs numériques
+                const numericCalculs = ['sum', 'average', 'median', 'min', 'max'];
                 Array.from(calculSelect.options).forEach(option => {
-                    option.disabled = false;
+                    if (numericCalculs.includes(option.value)) {
+                        option.disabled = true;
+                    }
                 });
                 
-                // Masquer le message d'information
-                noColumnMessage.style.display = 'none';
-                calculGroup.classList.remove('fr-select-group--info');
+                // Si le calcul actuel est numérique, revenir à "Compteur de lignes"
+                if (numericCalculs.includes(calculSelect.value)) {
+                    calculSelect.value = 'row-count';
+                    currentCalcul = 'row-count';
+                }
+                
+                // Afficher le message
+                nonNumericMessage.style.display = 'block';
+                calculGroup.classList.add('fr-select-group--info');
             }
         }
         
         // Fonctions de calcul
         function calculerValeur(records, typeCalcul) {
             if (!records || records.length === 0) return 0;
+            
+            // Compteur de lignes : toujours compter toutes les lignes
+            if (typeCalcul === 'row-count') {
+                return records.length;
+            }
             
             const mapped = grist.mapColumnNames(records);
             
@@ -230,10 +282,6 @@
                     return mapped.filter(r => r.ColonneCalcul == null || r.ColonneCalcul === '').length;
                 }
                 case 'filled': {
-                    // Si pas de colonne mappée, compte toutes les lignes
-                    if (!hasColumnMapping) {
-                        return records.length;
-                    }
                     return mapped.filter(r => r.ColonneCalcul != null && r.ColonneCalcul !== '').length;
                 }
                 case 'unique': {
@@ -352,8 +400,21 @@
             // Utiliser !== undefined pour permettre les valeurs vides
             currentLabel = options.label !== undefined ? options.label : "label";
             currentCouleur = options.couleur !== undefined ? options.couleur : "";
-            currentCalcul = options.calcul !== undefined ? options.calcul : "filled";
+            currentCalcul = options.calcul !== undefined ? options.calcul : "row-count";
             currentEuro = options.euro !== undefined ? options.euro : false;
+            
+            // Si pas de colonne mappée, forcer "row-count"
+            if (!hasColumnMapping && currentCalcul !== 'row-count') {
+                currentCalcul = 'row-count';
+                grist.widgetApi.setOption('calcul', 'row-count');
+            }
+            
+            // Si colonne non-numérique et calcul numérique, forcer "row-count"
+            const numericCalculs = ['sum', 'average', 'median', 'min', 'max'];
+            if (!isNumericColumn && numericCalculs.includes(currentCalcul)) {
+                currentCalcul = 'row-count';
+                grist.widgetApi.setOption('calcul', 'row-count');
+            }
             
             // Appliquer le label
             labelElement.textContent = echapperHTML(currentLabel);
@@ -386,7 +447,7 @@
                     title: 'Colonne pour le calcul', 
                     type: 'Any',
                     optional: true,
-                    description: 'Colonne sur laquelle effectuer le calcul (optionnel pour "Rempli")'
+                    description: 'Colonne sur laquelle effectuer le calcul (optionnel pour "Compteur de lignes")'
                 }],
                 requiredAccess: 'read table',
                 allowSelectBy: true,
@@ -425,6 +486,9 @@
             grist.onRecords(function(records, mappings) {
                 // Détecter si une colonne est mappée
                 hasColumnMapping = mappings && mappings.ColonneCalcul !== undefined && mappings.ColonneCalcul !== null;
+                
+                // Détecter si la colonne est numérique
+                isNumericColumn = detecterTypeColonne(records);
                 
                 mettreAJourCompteur(records || []);
             });
