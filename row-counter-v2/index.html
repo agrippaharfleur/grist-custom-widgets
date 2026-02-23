@@ -6,103 +6,262 @@
     <title>Compteur de lignes</title>
     <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
     
-    <!-- DSFR CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/dsfr.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/utility/utilities.min.css">
-    
     <style>
-        body {
-            margin: 0;
-            padding: 1rem;
-            background-color: var(--background-default-grey);
-            font-family: Marianne, Arial, sans-serif;
-        }
-        
-        .counter-value {
-            font-size: 3rem;
-            font-weight: 700;
-            line-height: 1;
-            margin-bottom: 0.5rem;
-        }
-        
-        .counter-label {
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        .fr-callout .counter-value,
-        .fr-callout .counter-label {
-            color: inherit;
+        *, *::before, *::after { box-sizing: border-box; }
+
+        :root {
+            --gh-bg: #ffffff;
+            --gh-surface: #f6f8fa;
+            --gh-border: #d0d7de;
+            --gh-border-muted: #eaeef2;
+            --gh-text: #1f2328;
+            --gh-text-muted: #656d76;
+            --gh-text-subtle: #9198a1;
+            --gh-accent: #0969da;
+            --gh-accent-hover: #0550ae;
+            --gh-green: #1a7f37;
+            --gh-radius: 6px;
+            --gh-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
         }
 
+        body {
+            margin: 0;
+            padding: 12px;
+            background: var(--gh-bg);
+            color: var(--gh-text);
+            font-family: var(--gh-font);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* ── Counter display ── */
+        #container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: center;
+        }
+
+        .counter-card {
+            background: var(--gh-surface);
+            border: 1px solid var(--gh-border);
+            border-radius: var(--gh-radius);
+            padding: 16px 20px;
+            display: inline-flex;
+            flex-direction: column;
+            gap: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .counter-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: var(--accent-color, var(--gh-accent));
+        }
+
+        .counter-value {
+            font-size: 2.5rem;
+            font-weight: 600;
+            line-height: 1;
+            color: var(--accent-color, var(--gh-accent));
+            letter-spacing: -0.02em;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .counter-label {
+            font-size: 12px;
+            color: var(--gh-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 500;
+        }
+
+        /* ── Config panel ── */
         #config {
             display: none;
-            background-color: var(--background-default-grey);
-            padding: 1rem;
             height: 100%;
             overflow-y: auto;
         }
 
-        #preview {
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border-default-grey);
+        .form-group {
+            margin-bottom: 16px;
         }
 
-        #preview .counter-value {
-            font-size: 2rem;
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gh-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 6px;
         }
-        
+
+        input[type="text"],
+        select {
+            width: 100%;
+            background: var(--gh-bg);
+            border: 1px solid var(--gh-border);
+            border-radius: var(--gh-radius);
+            color: var(--gh-text);
+            font-family: var(--gh-font);
+            font-size: 14px;
+            padding: 5px 12px;
+            outline: none;
+            transition: border-color 0.15s;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            border-color: var(--gh-accent);
+            box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.15);
+        }
+
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b949e' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 28px;
+            cursor: pointer;
+        }
+
+        option, optgroup {
+            background: #ffffff;
+            color: var(--gh-text);
+        }
+
+        .info-message {
+            display: none;
+            background: rgba(31, 111, 235, 0.1);
+            border: 1px solid rgba(31, 111, 235, 0.3);
+            border-radius: var(--gh-radius);
+            color: #79c0ff;
+            font-size: 12px;
+            padding: 6px 10px;
+            margin-top: 6px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--gh-accent);
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            text-transform: none;
+            letter-spacing: normal;
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--gh-text);
+            margin: 0;
+            cursor: pointer;
+        }
+
         .button-group {
             display: flex;
-            gap: 1rem;
+            gap: 8px;
+            margin-top: 20px;
         }
+
+        button {
+            font-family: var(--gh-font);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 5px 16px;
+            border-radius: var(--gh-radius);
+            border: 1px solid;
+            cursor: pointer;
+            transition: background 0.12s, border-color 0.12s;
+            line-height: 20px;
+        }
+
+        button.primary {
+            background: var(--gh-accent);
+            border-color: rgba(240,246,252,0.1);
+            color: #fff;
+        }
+        button.primary:hover { background: var(--gh-accent-hover); }
+
+        button.secondary {
+            background: #f6f8fa;
+            border-color: #d0d7de;
+            color: var(--gh-text);
+        }
+        button.secondary:hover { background: #eaeef2; border-color: #9198a1; }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--gh-border-muted);
+            margin: 20px 0;
+        }
+
+        /* Preview */
+        .preview-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--gh-text-subtle);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 8px;
+        }
+
+        /* Accent color swatches */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 28px);
+            gap: 6px;
+        }
+
+        .color-swatch {
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.1s, border-color 0.1s;
+        }
+        .color-swatch:hover { transform: scale(1.1); }
+        .color-swatch.selected { border-color: var(--gh-text); }
     </style>
 </head>
 <body>
-    <!-- Mode normal : affichage du compteur -->
+
+    <!-- Mode normal -->
     <div id="container">
-        <div class="fr-callout" id="callout">
-            <p class="fr-callout__title counter-value" id="rowCount">0</p>
-            <p class="counter-label" id="rowLabel">label</p>
+        <div class="counter-card" id="callout">
+            <span class="counter-value" id="rowCount">0</span>
+            <span class="counter-label" id="rowLabel">label</span>
         </div>
     </div>
 
     <!-- Mode configuration -->
     <div id="config">
-        <div class="fr-input-group">
-            <label class="fr-label" for="labelInput">Texte du label</label>
-            <input class="fr-input" type="text" id="labelInput" placeholder="label">
+
+        <div class="form-group">
+            <label for="labelInput">Label</label>
+            <input type="text" id="labelInput" placeholder="label">
         </div>
 
-        <div class="fr-input-group fr-mt-2w">
-            <label class="fr-label" for="couleurSelect">Couleur du callout</label>
-            <select class="fr-select" id="couleurSelect">
-                <option value="">défaut</option>
-                <option value="green-tilleul-verveine">green-tilleul-verveine</option>
-                <option value="green-bourgeon">green-bourgeon</option>
-                <option value="green-emeraude">green-emeraude</option>
-                <option value="green-menthe">green-menthe</option>
-                <option value="green-archipel">green-archipel</option>
-                <option value="blue-ecume">blue-ecume</option>
-                <option value="blue-cumulus">blue-cumulus</option>
-                <option value="purple-glycine">purple-glycine</option>
-                <option value="pink-macaron">pink-macaron</option>
-                <option value="pink-tuile">pink-tuile</option>
-                <option value="yellow-tournesol">yellow-tournesol</option>
-                <option value="yellow-moutarde">yellow-moutarde</option>
-                <option value="orange-terre-battue">orange-terre-battue</option>
-                <option value="brown-cafe-creme">brown-cafe-creme</option>
-                <option value="brown-caramel">brown-caramel</option>
-                <option value="brown-opera">brown-opera</option>
-                <option value="beige-gris-galet">beige-gris-galet</option>
-            </select>
+        <div class="form-group">
+            <label>Couleur d'accentuation</label>
+            <div class="color-grid" id="colorGrid"></div>
         </div>
 
-        <div class="fr-select-group fr-mt-2w" id="calculGroup">
-            <label class="fr-label" for="calculSelect">Type de calcul</label>
-            <select class="fr-select" aria-describedby="calcul-messages" id="calculSelect">
+        <div class="form-group" id="calculGroup">
+            <label for="calculSelect">Type de calcul</label>
+            <select id="calculSelect">
                 <option value="row-count" selected>Compteur de lignes</option>
                 <optgroup label="Tous les champs">
                     <option value="empty">Vide</option>
@@ -111,7 +270,7 @@
                     <option value="percent-empty">% Vide</option>
                     <option value="percent-filled">% Rempli</option>
                 </optgroup>
-                <optgroup label="Champs numériques uniquement" id="numericGroup">
+                <optgroup label="Champs numériques uniquement">
                     <option value="sum">Somme</option>
                     <option value="average">Moyenne</option>
                     <option value="median">Médiane</option>
@@ -119,403 +278,259 @@
                     <option value="max">Maximum</option>
                 </optgroup>
             </select>
-            
-            <div class="fr-messages-group" id="calcul-messages" aria-live="polite">
-                <!-- Message affiché quand aucune colonne n'est mappée -->
-                <p class="fr-message fr-message--info" id="no-column-message" style="display: none;">
-                    Aucune colonne sélectionnée. Le compteur affiche le nombre total de lignes.
-                </p>
-                <!-- Message affiché quand la colonne n'est pas numérique -->
-                <p class="fr-message fr-message--info" id="non-numeric-message" style="display: none;">
-                    La colonne sélectionnée n'est pas numérique. Les calculs numériques sont désactivés.
-                </p>
-            </div>
+            <div class="info-message" id="no-column-message">Aucune colonne sélectionnée — affichage du nombre de lignes.</div>
+            <div class="info-message" id="non-numeric-message">Colonne non numérique — calculs numériques désactivés.</div>
         </div>
 
-        <div class="fr-checkbox-group fr-mt-2w" id="euroCheckboxGroup">
+        <div class="form-group checkbox-group" id="euroCheckboxGroup">
             <input type="checkbox" id="euroCheckbox">
-            <label class="fr-label" for="euroCheckbox">Afficher le symbole € (pour les calculs numériques)</label>
+            <label for="euroCheckbox">Afficher le symbole €</label>
         </div>
 
-        <div class="button-group fr-mt-2w">
-            <button class="fr-btn" onclick="saveOptions()">Enregistrer</button>
-            <button class="fr-btn fr-btn--secondary" onclick="cancelOptions()">Annuler</button>
+        <div class="button-group">
+            <button class="primary" onclick="saveOptions()">Enregistrer</button>
+            <button class="secondary" onclick="cancelOptions()">Annuler</button>
         </div>
 
-        <!-- Prévisualisation -->
-        <div id="preview">
-            <p class="fr-text--sm fr-text--bold fr-mb-1w">Prévisualisation :</p>
-            <div class="fr-callout" id="previewCallout">
-                <p class="fr-callout__title counter-value" id="previewCount">42</p>
-                <p class="counter-label" id="previewLabel">label</p>
-            </div>
+        <hr class="divider">
+
+        <div class="preview-label">Prévisualisation</div>
+        <div class="counter-card" id="previewCallout" style="display:inline-flex;">
+            <span class="counter-value" id="previewCount">42</span>
+            <span class="counter-label" id="previewLabel">label</span>
         </div>
     </div>
 
-    <!-- DSFR JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/dsfr.module.min.js" type="module"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/dsfr.nomodule.min.js" nomodule></script>
-    
     <script>
-        // Module de sécurité
+        // ── Palette de couleurs ──────────────────────────────────────────────
+        const COLORS = [
+            { name: 'blue',    value: '#388bfd' },
+            { name: 'green',   value: '#3fb950' },
+            { name: 'purple',  value: '#bc8cff' },
+            { name: 'red',     value: '#f85149' },
+            { name: 'orange',  value: '#d29922' },
+            { name: 'cyan',    value: '#39d5c6' },
+            { name: 'pink',    value: '#ff7b72' },
+            { name: 'indigo',  value: '#79c0ff' },
+            { name: 'lime',    value: '#a5d46a' },
+            { name: 'default', value: '#1f6feb' },
+        ];
+
+        let selectedColor = '#388bfd';
+
+        function buildColorGrid() {
+            const grid = document.getElementById('colorGrid');
+            COLORS.forEach(c => {
+                const sw = document.createElement('div');
+                sw.className = 'color-swatch' + (c.value === selectedColor ? ' selected' : '');
+                sw.style.background = c.value;
+                sw.title = c.name;
+                sw.dataset.value = c.value;
+                sw.onclick = () => {
+                    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                    sw.classList.add('selected');
+                    selectedColor = c.value;
+                    updatePreview();
+                };
+                grid.appendChild(sw);
+            });
+        }
+
+        // ── Sécurité ─────────────────────────────────────────────────────────
         function echapperHTML(texte) {
             if (!texte && texte !== 0) return '';
             const div = document.createElement('div');
             div.textContent = String(texte);
             return div.innerHTML;
         }
-        
+
         function formaterNombre(nombre, typeCalcul, avecEuro = false) {
             if (typeof nombre !== 'number' || isNaN(nombre)) return '0';
-            
-            const formatted = nombre.toLocaleString('fr-FR', {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 2
-            });
-            
-            // Ajouter % pour les calculs de pourcentage
-            if (typeCalcul && typeCalcul.startsWith('percent-')) {
-                return formatted + ' %';
-            }
-            
-            // Ajouter € si demandé
+            const formatted = nombre.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+            if (typeCalcul && typeCalcul.startsWith('percent-')) return formatted + ' %';
             return avecEuro ? formatted + ' €' : formatted;
         }
-        
-        console.log('✓ Module de sécurité chargé');
-        
-        // Variables globales
-        let currentLabel = "label";
-        let currentCouleur = "";
-        let currentCalcul = "row-count";
+
+        // ── État global ───────────────────────────────────────────────────────
+        let currentLabel = 'label';
+        let currentCouleur = '#388bfd';
+        let currentCalcul = 'row-count';
         let currentEuro = false;
         let currentRecords = [];
         let hasColumnMapping = false;
         let isNumericColumn = false;
-        
-        // Vérifier si la colonne est numérique
+
+        // ── Utilitaires ───────────────────────────────────────────────────────
+        function applyAccentColor(el, color) {
+            el.style.setProperty('--accent-color', color || 'var(--gh-accent)');
+        }
+
         function detecterTypeColonne(records) {
-            if (!records || records.length === 0 || !hasColumnMapping) {
-                return false;
-            }
-            
+            if (!records || records.length === 0 || !hasColumnMapping) return false;
             const mapped = grist.mapColumnNames(records);
-            
-            // Vérifier les premières valeurs non-nulles
             for (let i = 0; i < Math.min(10, mapped.length); i++) {
-                const value = mapped[i].ColonneCalcul;
-                if (value != null && value !== '') {
-                    // Si on trouve une valeur, tester si c'est un nombre
-                    return typeof value === 'number' || !isNaN(parseFloat(value));
-                }
+                const v = mapped[i].ColonneCalcul;
+                if (v != null && v !== '') return typeof v === 'number' || !isNaN(parseFloat(v));
             }
-            
-            // Par défaut, considérer comme non-numérique si aucune valeur trouvée
             return false;
         }
-        
-        // Gérer la visibilité de la checkbox €
+
         function updateEuroCheckboxVisibility() {
-            const calculSelect = document.getElementById('calculSelect');
-            const euroCheckboxGroup = document.getElementById('euroCheckboxGroup');
-            const typeCalcul = calculSelect.value;
-            
-            // Masquer si c'est un calcul de pourcentage
-            if (typeCalcul.startsWith('percent-')) {
-                euroCheckboxGroup.style.display = 'none';
-            } else {
-                euroCheckboxGroup.style.display = 'block';
-            }
+            const type = document.getElementById('calculSelect').value;
+            document.getElementById('euroCheckboxGroup').style.display =
+                type.startsWith('percent-') ? 'none' : 'flex';
         }
-        
-        // Gérer l'état du select de calcul selon le mapping
+
         function updateCalculSelectState() {
-            const calculSelect = document.getElementById('calculSelect');
-            const noColumnMessage = document.getElementById('no-column-message');
-            const nonNumericMessage = document.getElementById('non-numeric-message');
-            const calculGroup = document.getElementById('calculGroup');
-            
-            // Réinitialiser tous les états
-            Array.from(calculSelect.options).forEach(option => {
-                option.disabled = false;
-            });
-            noColumnMessage.style.display = 'none';
-            nonNumericMessage.style.display = 'none';
-            calculGroup.classList.remove('fr-select-group--info');
-            
+            const sel = document.getElementById('calculSelect');
+            const noCol = document.getElementById('no-column-message');
+            const nonNum = document.getElementById('non-numeric-message');
+            noCol.style.display = 'none';
+            nonNum.style.display = 'none';
+            Array.from(sel.options).forEach(o => o.disabled = false);
+
             if (!hasColumnMapping) {
-                // Aucune colonne mappée : bloquer tout sauf "Compteur de lignes"
-                Array.from(calculSelect.options).forEach(option => {
-                    if (option.value !== 'row-count') {
-                        option.disabled = true;
-                    }
-                });
-                
-                // Forcer la sélection sur "Compteur de lignes"
-                calculSelect.value = 'row-count';
-                currentCalcul = 'row-count';
-                
-                // Afficher le message
-                noColumnMessage.style.display = 'block';
-                calculGroup.classList.add('fr-select-group--info');
-                
+                Array.from(sel.options).forEach(o => { if (o.value !== 'row-count') o.disabled = true; });
+                sel.value = 'row-count'; currentCalcul = 'row-count';
+                noCol.style.display = 'block';
             } else if (!isNumericColumn) {
-                // Colonne non-numérique : bloquer les calculs numériques
-                const numericCalculs = ['sum', 'average', 'median', 'min', 'max'];
-                Array.from(calculSelect.options).forEach(option => {
-                    if (numericCalculs.includes(option.value)) {
-                        option.disabled = true;
-                    }
+                ['sum','average','median','min','max'].forEach(v => {
+                    const o = sel.querySelector(`option[value="${v}"]`);
+                    if (o) o.disabled = true;
                 });
-                
-                // Si le calcul actuel est numérique, revenir à "Compteur de lignes"
-                if (numericCalculs.includes(calculSelect.value)) {
-                    calculSelect.value = 'row-count';
-                    currentCalcul = 'row-count';
+                if (['sum','average','median','min','max'].includes(sel.value)) {
+                    sel.value = 'row-count'; currentCalcul = 'row-count';
                 }
-                
-                // Afficher le message
-                nonNumericMessage.style.display = 'block';
-                calculGroup.classList.add('fr-select-group--info');
+                nonNum.style.display = 'block';
             }
-            
-            // Mettre à jour la visibilité de la checkbox €
             updateEuroCheckboxVisibility();
         }
-        
-        // Fonctions de calcul
+
+        // ── Calculs ───────────────────────────────────────────────────────────
         function calculerValeur(records, typeCalcul) {
             if (!records || records.length === 0) return 0;
-            
-            // Compteur de lignes : toujours compter toutes les lignes
-            if (typeCalcul === 'row-count') {
-                return records.length;
-            }
-            
+            if (typeCalcul === 'row-count') return records.length;
             const mapped = grist.mapColumnNames(records);
-            
-            switch(typeCalcul) {
-                case 'empty': {
-                    return mapped.filter(r => r.ColonneCalcul == null || r.ColonneCalcul === '').length;
-                }
-                case 'filled': {
-                    return mapped.filter(r => r.ColonneCalcul != null && r.ColonneCalcul !== '').length;
-                }
-                case 'unique': {
-                    const values = mapped.map(r => r.ColonneCalcul).filter(v => v != null && v !== '');
-                    return new Set(values).size;
-                }
-                case 'percent-empty': {
-                    const empty = mapped.filter(r => r.ColonneCalcul == null || r.ColonneCalcul === '').length;
-                    return parseFloat((empty / records.length * 100).toFixed(1));
-                }
-                case 'percent-filled': {
-                    const filled = mapped.filter(r => r.ColonneCalcul != null && r.ColonneCalcul !== '').length;
-                    return parseFloat((filled / records.length * 100).toFixed(1));
-                }
-                case 'sum': {
-                    return mapped.reduce((sum, r) => {
-                        const val = parseFloat(r.ColonneCalcul);
-                        return sum + (isNaN(val) ? 0 : val);
-                    }, 0);
-                }
-                case 'average': {
-                    const values = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v));
-                    return values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0;
-                }
-                case 'median': {
-                    const values = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v)).sort((a, b) => a - b);
-                    if (values.length === 0) return 0;
-                    const mid = Math.floor(values.length / 2);
-                    return values.length % 2 === 0 ? (values[mid - 1] + values[mid]) / 2 : values[mid];
-                }
-                case 'min': {
-                    const values = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v));
-                    return values.length > 0 ? Math.min(...values) : 0;
-                }
-                case 'max': {
-                    const values = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v));
-                    return values.length > 0 ? Math.max(...values) : 0;
-                }
-                default:
-                    return records.length;
+            switch (typeCalcul) {
+                case 'empty':         return mapped.filter(r => r.ColonneCalcul == null || r.ColonneCalcul === '').length;
+                case 'filled':        return mapped.filter(r => r.ColonneCalcul != null && r.ColonneCalcul !== '').length;
+                case 'unique':        return new Set(mapped.map(r => r.ColonneCalcul).filter(v => v != null && v !== '')).size;
+                case 'percent-empty': return parseFloat((mapped.filter(r => r.ColonneCalcul == null || r.ColonneCalcul === '').length / records.length * 100).toFixed(1));
+                case 'percent-filled':return parseFloat((mapped.filter(r => r.ColonneCalcul != null && r.ColonneCalcul !== '').length / records.length * 100).toFixed(1));
+                case 'sum':           return mapped.reduce((s, r) => { const v = parseFloat(r.ColonneCalcul); return s + (isNaN(v) ? 0 : v); }, 0);
+                case 'average': { const vals = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v)); return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0; }
+                case 'median': { const vals = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v)).sort((a,b)=>a-b); if (!vals.length) return 0; const m = Math.floor(vals.length/2); return vals.length%2 ? vals[m] : (vals[m-1]+vals[m])/2; }
+                case 'min': { const vals = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v)); return vals.length ? Math.min(...vals) : 0; }
+                case 'max': { const vals = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v)); return vals.length ? Math.max(...vals) : 0; }
+                default: return records.length;
             }
         }
-        
-        // Mise à jour de la prévisualisation
+
+        // ── Preview ───────────────────────────────────────────────────────────
         function updatePreview() {
-            const label = document.getElementById("labelInput").value || "label";
-            const couleur = document.getElementById("couleurSelect").value;
-            const calcul = document.getElementById("calculSelect").value;
-            const euro = document.getElementById("euroCheckbox").checked;
-            
+            const label = document.getElementById('labelInput').value || 'label';
+            const calcul = document.getElementById('calculSelect').value;
+            const euro = document.getElementById('euroCheckbox').checked;
+            const color = selectedColor;
+
             const previewCallout = document.getElementById('previewCallout');
-            const previewLabel = document.getElementById('previewLabel');
-            const previewCount = document.getElementById('previewCount');
-            
-            // Appliquer la couleur
-            previewCallout.className = 'fr-callout';
-            if (couleur) {
-                previewCallout.classList.add('fr-callout--' + couleur);
-            }
-            
-            // Appliquer le label
-            previewLabel.textContent = echapperHTML(label);
-            
-            // Appliquer le format du nombre selon le type de calcul
-            let exampleValue = 42;
-            if (calcul.startsWith('percent-')) {
-                exampleValue = 75.5; // Exemple pour les pourcentages
-            }
-            
-            previewCount.textContent = formaterNombre(exampleValue, calcul, euro);
+            applyAccentColor(previewCallout, color);
+
+            document.getElementById('previewLabel').textContent = label;
+            const exampleValue = calcul.startsWith('percent-') ? 75.5 : 42;
+            document.getElementById('previewCount').textContent = formaterNombre(exampleValue, calcul, euro);
         }
-        
-        // Ajouter les listeners pour la prévisualisation en temps réel
+
         function setupPreviewListeners() {
-            document.getElementById("labelInput").addEventListener('input', updatePreview);
-            document.getElementById("couleurSelect").addEventListener('change', updatePreview);
-            document.getElementById("calculSelect").addEventListener('change', function() {
-                updateEuroCheckboxVisibility();
-                updatePreview();
-            });
-            document.getElementById("euroCheckbox").addEventListener('change', updatePreview);
+            document.getElementById('labelInput').addEventListener('input', updatePreview);
+            document.getElementById('calculSelect').addEventListener('change', () => { updateEuroCheckboxVisibility(); updatePreview(); });
+            document.getElementById('euroCheckbox').addEventListener('change', updatePreview);
         }
-        
-        // Fermer le panneau de configuration
+
+        // ── Config open/close ─────────────────────────────────────────────────
         function closeConfigPanel() {
-            document.getElementById("container").style.display = 'block';
-            document.getElementById("config").style.display = 'none';
+            document.getElementById('container').style.display = 'flex';
+            document.getElementById('config').style.display = 'none';
             grist.widgetApi.clearOptions();
         }
-        
-        // Sauvegarder les options
+
         function saveOptions() {
-            const label = document.getElementById("labelInput").value;
-            const couleur = document.getElementById("couleurSelect").value;
-            const calcul = document.getElementById("calculSelect").value;
-            const euro = document.getElementById("euroCheckbox").checked;
-            
+            const label = document.getElementById('labelInput').value;
+            const calcul = document.getElementById('calculSelect').value;
+            const euro = document.getElementById('euroCheckbox').checked;
             grist.widgetApi.setOption('label', label);
-            grist.widgetApi.setOption('couleur', couleur);
+            grist.widgetApi.setOption('couleur', selectedColor);
             grist.widgetApi.setOption('calcul', calcul);
             grist.widgetApi.setOption('euro', euro);
-            
-            // Fermer le panneau après sauvegarde
             closeConfigPanel();
         }
-        
-        // Annuler les modifications
-        function cancelOptions() {
-            closeConfigPanel();
-        }
-        
-        // Appliquer les options
+
+        function cancelOptions() { closeConfigPanel(); }
+
+        // ── Application des options ───────────────────────────────────────────
         function appliquerOptions(options) {
-            const callout = document.getElementById('callout');
-            const labelElement = document.getElementById('rowLabel');
-            
             options = options || {};
-            
-            // Utiliser !== undefined pour permettre les valeurs vides
-            currentLabel = options.label !== undefined ? options.label : "label";
-            currentCouleur = options.couleur !== undefined ? options.couleur : "";
-            currentCalcul = options.calcul !== undefined ? options.calcul : "row-count";
-            currentEuro = options.euro !== undefined ? options.euro : false;
-            
-            // Si pas de colonne mappée, forcer "row-count"
-            if (!hasColumnMapping && currentCalcul !== 'row-count') {
-                currentCalcul = 'row-count';
-                grist.widgetApi.setOption('calcul', 'row-count');
-            }
-            
-            // Si colonne non-numérique et calcul numérique, forcer "row-count"
-            const numericCalculs = ['sum', 'average', 'median', 'min', 'max'];
-            if (!isNumericColumn && numericCalculs.includes(currentCalcul)) {
-                currentCalcul = 'row-count';
-                grist.widgetApi.setOption('calcul', 'row-count');
-            }
-            
-            // Appliquer le label
-            labelElement.textContent = echapperHTML(currentLabel);
-            
-            // Appliquer la couleur
-            callout.className = 'fr-callout';
-            if (currentCouleur) {
-                callout.classList.add('fr-callout--' + currentCouleur);
-            }
-            
-            // Recalculer avec les nouveaux paramètres
-            if (currentRecords.length > 0) {
-                mettreAJourCompteur(currentRecords);
-            }
+            currentLabel   = options.label   !== undefined ? options.label   : 'label';
+            currentCouleur = options.couleur  !== undefined ? options.couleur : '#388bfd';
+            currentCalcul  = options.calcul   !== undefined ? options.calcul  : 'row-count';
+            currentEuro    = options.euro     !== undefined ? options.euro    : false;
+
+            const numericCalculs = ['sum','average','median','min','max'];
+            if (!hasColumnMapping && currentCalcul !== 'row-count') { currentCalcul = 'row-count'; grist.widgetApi.setOption('calcul','row-count'); }
+            if (!isNumericColumn && numericCalculs.includes(currentCalcul)) { currentCalcul = 'row-count'; grist.widgetApi.setOption('calcul','row-count'); }
+
+            document.getElementById('rowLabel').textContent = echapperHTML(currentLabel);
+            applyAccentColor(document.getElementById('callout'), currentCouleur);
+
+            if (currentRecords.length > 0) mettreAJourCompteur(currentRecords);
         }
-        
-        // Mettre à jour le compteur
+
         function mettreAJourCompteur(records) {
             currentRecords = records;
             const valeur = calculerValeur(records, currentCalcul);
-            const formattedCount = formaterNombre(valeur, currentCalcul, currentEuro);
-            document.getElementById('rowCount').textContent = echapperHTML(formattedCount);
+            document.getElementById('rowCount').textContent = echapperHTML(formaterNombre(valeur, currentCalcul, currentEuro));
         }
-        
-        // Initialisation Grist
+
+        // ── Init Grist ────────────────────────────────────────────────────────
         function initGrist() {
-            grist.ready({ 
-                columns: [{ 
-                    name: "ColonneCalcul", 
-                    title: 'Colonne pour le calcul', 
-                    type: 'Any',
-                    optional: true,
-                    description: 'Colonne sur laquelle effectuer le calcul (optionnel pour "Compteur de lignes")'
-                }],
+            grist.ready({
+                columns: [{ name: 'ColonneCalcul', title: 'Colonne pour le calcul', type: 'Any', optional: true, description: 'Colonne sur laquelle effectuer le calcul' }],
                 requiredAccess: 'read table',
                 allowSelectBy: true,
                 onEditOptions() {
-                    // Passer en mode configuration
-                    document.getElementById("container").style.display = 'none';
-                    document.getElementById("config").style.display = 'block';
-                    
-                    // Pré-remplir les champs avec les valeurs actuelles
-                    document.getElementById("labelInput").value = currentLabel;
-                    document.getElementById("couleurSelect").value = currentCouleur;
-                    document.getElementById("calculSelect").value = currentCalcul;
-                    document.getElementById("euroCheckbox").checked = currentEuro;
-                    
-                    // Mettre à jour l'état du select selon le mapping
+                    document.getElementById('container').style.display = 'none';
+                    document.getElementById('config').style.display = 'block';
+                    document.getElementById('labelInput').value = currentLabel;
+                    document.getElementById('calculSelect').value = currentCalcul;
+                    document.getElementById('euroCheckbox').checked = currentEuro;
+
+                    // Sync selected color swatch
+                    selectedColor = currentCouleur;
+                    document.querySelectorAll('.color-swatch').forEach(sw => {
+                        sw.classList.toggle('selected', sw.dataset.value === selectedColor);
+                    });
+
                     updateCalculSelectState();
-                    
-                    // Mettre à jour la prévisualisation
                     updatePreview();
                 }
             });
-            
-            // Charger les options
+
             grist.onOptions((customOptions) => {
                 customOptions = customOptions || {};
-                
-                // Repasser en mode normal
-                document.getElementById("container").style.display = 'block';
-                document.getElementById("config").style.display = 'none';
-                
-                // Appliquer les options
+                document.getElementById('container').style.display = 'flex';
+                document.getElementById('config').style.display = 'none';
                 appliquerOptions(customOptions);
             });
-            
-            // Mise à jour du compteur
+
             grist.onRecords(function(records, mappings) {
-                // Détecter si une colonne est mappée
                 hasColumnMapping = mappings && mappings.ColonneCalcul !== undefined && mappings.ColonneCalcul !== null;
-                
-                // Détecter si la colonne est numérique
                 isNumericColumn = detecterTypeColonne(records);
-                
                 mettreAJourCompteur(records || []);
             });
         }
-        
-        // Initialiser au chargement du DOM
+
         document.addEventListener('DOMContentLoaded', function() {
+            buildColorGrid();
             initGrist();
             setupPreviewListeners();
         });
