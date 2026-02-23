@@ -5,537 +5,504 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Compteur de lignes</title>
     <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
-    
+
     <style>
-        *, *::before, *::after { box-sizing: border-box; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --gh-bg: #ffffff;
-            --gh-surface: #f6f8fa;
-            --gh-border: #d0d7de;
-            --gh-border-muted: #eaeef2;
-            --gh-text: #1f2328;
-            --gh-text-muted: #656d76;
-            --gh-text-subtle: #9198a1;
-            --gh-accent: #0969da;
-            --gh-accent-hover: #0550ae;
-            --gh-green: #1a7f37;
-            --gh-radius: 6px;
             --gh-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            --gh-text:        #1f2328;
+            --gh-text-muted:  #656d76;
+            --gh-text-subtle: #9198a1;
+            --gh-border:      #d0d7de;
+            --gh-surface:     #f6f8fa;
+            --gh-bg:          #ffffff;
+            --gh-accent:      #0969da;
+            --gh-radius:      6px;
         }
 
-        body {
-            margin: 0;
-            padding: 12px;
-            background: var(--gh-bg);
-            color: var(--gh-text);
+        html, body {
+            width: 100%; height: 100%;
             font-family: var(--gh-font);
             font-size: 14px;
-            line-height: 1.5;
         }
 
-        /* ── Counter display ── */
+        /* ── Counter (full size) ─────────────────────────────────────────────── */
         #container {
+            width: 100%; height: 100%;
             display: flex;
             flex-direction: column;
-            height: 100%;
             justify-content: center;
-        }
-
-        .counter-card {
-            background: var(--gh-surface);
-            border: 1px solid var(--gh-border);
-            border-radius: var(--gh-radius);
-            padding: 16px 20px;
-            display: inline-flex;
-            flex-direction: column;
-            gap: 2px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .counter-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 2px;
-            background: var(--accent-color, var(--gh-accent));
+            padding: 20px 24px;
+            background: var(--bg-color, #ffffff);
+            transition: background 0.2s;
         }
 
         .counter-value {
-            font-size: 2.5rem;
-            font-weight: 600;
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            font-weight: 700;
             line-height: 1;
-            color: var(--accent-color, var(--gh-accent));
+            color: var(--text-color, #1f2328);
             letter-spacing: -0.02em;
             font-variant-numeric: tabular-nums;
-        }
-
-        .counter-label {
-            font-size: 12px;
-            color: var(--gh-text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            font-weight: 500;
-        }
-
-        /* ── Config panel ── */
-        #config {
-            display: none;
-            height: 100%;
-            overflow-y: auto;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--gh-text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
             margin-bottom: 6px;
         }
 
-        input[type="text"],
-        select {
+        .counter-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-color, #656d76);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.75;
+        }
+
+        /* ── Config panel ────────────────────────────────────────────────────── */
+        #config {
+            display: none;
+            width: 100%; height: 100%;
+            overflow-y: auto;
+            padding: 16px;
+            background: var(--gh-bg);
+            color: var(--gh-text);
+        }
+
+        .form-group { margin-bottom: 14px; }
+
+        .form-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--gh-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"], select {
             width: 100%;
             background: var(--gh-bg);
             border: 1px solid var(--gh-border);
             border-radius: var(--gh-radius);
             color: var(--gh-text);
             font-family: var(--gh-font);
-            font-size: 14px;
-            padding: 5px 12px;
+            font-size: 13px;
+            padding: 5px 10px;
             outline: none;
-            transition: border-color 0.15s;
+            transition: border-color 0.15s, box-shadow 0.15s;
             appearance: none;
-            -webkit-appearance: none;
         }
-
-        input[type="text"]:focus,
-        select:focus {
+        input[type="text"]:focus, select:focus {
             border-color: var(--gh-accent);
-            box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.15);
+            box-shadow: 0 0 0 3px rgba(9,105,218,0.12);
         }
-
         select {
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23656d76' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 10px center;
+            background-color: var(--gh-bg);
             padding-right: 28px;
             cursor: pointer;
         }
+        option, optgroup { background: #fff; color: var(--gh-text); }
 
-        option, optgroup {
-            background: #ffffff;
-            color: var(--gh-text);
-        }
-
-        .info-message {
-            display: none;
-            background: #dbeafe;
-            border: 1px solid #93c5fd;
-            border-radius: var(--gh-radius);
-            color: #1d4ed8;
-            font-size: 12px;
-            padding: 6px 10px;
-            margin-top: 6px;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            accent-color: var(--gh-accent);
-            cursor: pointer;
-        }
-
-        .checkbox-group label {
-            text-transform: none;
-            letter-spacing: normal;
-            font-size: 13px;
-            font-weight: 400;
-            color: var(--gh-text);
-            margin: 0;
-            cursor: pointer;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 8px;
-            margin-top: 20px;
-        }
-
-        button {
-            font-family: var(--gh-font);
-            font-size: 14px;
-            font-weight: 500;
-            padding: 5px 16px;
-            border-radius: var(--gh-radius);
-            border: 1px solid;
-            cursor: pointer;
-            transition: background 0.12s, border-color 0.12s;
-            line-height: 20px;
-        }
-
-        button.primary {
-            background: var(--gh-accent);
-            border-color: rgba(240,246,252,0.1);
-            color: #fff;
-        }
-        button.primary:hover { background: var(--gh-accent-hover); }
-
-        button.secondary {
-            background: #f6f8fa;
-            border-color: #d0d7de;
-            color: var(--gh-text);
-        }
-        button.secondary:hover { background: #eaeef2; border-color: #9198a1; }
-
-        .divider {
-            border: none;
-            border-top: 1px solid var(--gh-border-muted);
-            margin: 20px 0;
-        }
-
-        /* Preview */
-        .preview-label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--gh-text-subtle);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-bottom: 8px;
-        }
-
-        /* Accent color swatches */
-        .color-grid {
+        /* Color duos grid */
+        .duo-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, 28px);
+            grid-template-columns: repeat(3, 1fr);
             gap: 6px;
         }
 
-        .color-swatch {
-            width: 28px;
-            height: 28px;
-            border-radius: 4px;
+        .duo-swatch {
+            border-radius: var(--gh-radius);
             border: 2px solid transparent;
             cursor: pointer;
+            padding: 6px 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
             transition: transform 0.1s, border-color 0.1s;
         }
-        .color-swatch:hover { transform: scale(1.1); }
-        .color-swatch.selected { border-color: var(--gh-text); }
+        .duo-swatch:hover { transform: scale(1.03); }
+        .duo-swatch.selected { border-color: #1f2328; }
+
+        .duo-swatch .dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .duo-swatch .duo-name {
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Info message */
+        .info-msg {
+            display: none;
+            background: #ddf4ff;
+            border: 1px solid #54aeff66;
+            border-radius: var(--gh-radius);
+            color: #0969da;
+            font-size: 11px;
+            padding: 5px 8px;
+            margin-top: 5px;
+        }
+
+        /* Checkbox */
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .checkbox-row input { width: 14px; height: 14px; accent-color: var(--gh-accent); cursor: pointer; }
+        .checkbox-row label { font-size: 13px; color: var(--gh-text); cursor: pointer; }
+
+        /* Buttons */
+        .btn-group { display: flex; gap: 8px; margin-top: 16px; }
+        button {
+            font-family: var(--gh-font);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 5px 14px;
+            border-radius: var(--gh-radius);
+            border: 1px solid;
+            cursor: pointer;
+            line-height: 20px;
+            transition: background 0.12s;
+        }
+        button.primary { background: #0969da; border-color: rgba(31,35,40,0.15); color: #fff; }
+        button.primary:hover { background: #0550ae; }
+        button.secondary { background: var(--gh-surface); border-color: var(--gh-border); color: var(--gh-text); }
+        button.secondary:hover { background: #eaeef2; }
+
+        /* Divider */
+        hr { border: none; border-top: 1px solid var(--gh-border); margin: 14px 0; }
+
+        /* Preview */
+        .preview-title { font-size: 11px; font-weight: 600; color: var(--gh-text-subtle); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 7px; }
+        .preview-box {
+            border-radius: var(--gh-radius);
+            padding: 14px 18px;
+        }
+        .preview-box .counter-value { font-size: 1.8rem; }
     </style>
 </head>
 <body>
 
-    <!-- Mode normal -->
-    <div id="container">
-        <div class="counter-card" id="callout">
-            <span class="counter-value" id="rowCount">0</span>
-            <span class="counter-label" id="rowLabel">label</span>
-        </div>
+<!-- Mode normal : plein écran -->
+<div id="container">
+    <div class="counter-value" id="rowCount">0</div>
+    <div class="counter-label" id="rowLabel">label</div>
+</div>
+
+<!-- Mode configuration -->
+<div id="config">
+
+    <div class="form-group">
+        <label class="form-label" for="labelInput">Label</label>
+        <input type="text" id="labelInput" placeholder="label">
     </div>
 
-    <!-- Mode configuration -->
-    <div id="config">
-
-        <div class="form-group">
-            <label for="labelInput">Label</label>
-            <input type="text" id="labelInput" placeholder="label">
-        </div>
-
-        <div class="form-group">
-            <label>Couleur d'accentuation</label>
-            <div class="color-grid" id="colorGrid"></div>
-        </div>
-
-        <div class="form-group" id="calculGroup">
-            <label for="calculSelect">Type de calcul</label>
-            <select id="calculSelect">
-                <option value="row-count" selected>Compteur de lignes</option>
-                <optgroup label="Tous les champs">
-                    <option value="empty">Vide</option>
-                    <option value="filled">Rempli</option>
-                    <option value="unique">Unique</option>
-                    <option value="percent-empty">% Vide</option>
-                    <option value="percent-filled">% Rempli</option>
-                </optgroup>
-                <optgroup label="Champs numériques uniquement">
-                    <option value="sum">Somme</option>
-                    <option value="average">Moyenne</option>
-                    <option value="median">Médiane</option>
-                    <option value="min">Minimum</option>
-                    <option value="max">Maximum</option>
-                </optgroup>
-            </select>
-            <div class="info-message" id="no-column-message">Aucune colonne sélectionnée — affichage du nombre de lignes.</div>
-            <div class="info-message" id="non-numeric-message">Colonne non numérique — calculs numériques désactivés.</div>
-        </div>
-
-        <div class="form-group checkbox-group" id="euroCheckboxGroup">
-            <input type="checkbox" id="euroCheckbox">
-            <label for="euroCheckbox">Afficher le symbole €</label>
-        </div>
-
-        <div class="button-group">
-            <button class="primary" onclick="saveOptions()">Enregistrer</button>
-            <button class="secondary" onclick="cancelOptions()">Annuler</button>
-        </div>
-
-        <hr class="divider">
-
-        <div class="preview-label">Prévisualisation</div>
-        <div class="counter-card" id="previewCallout" style="display:inline-flex;">
-            <span class="counter-value" id="previewCount">42</span>
-            <span class="counter-label" id="previewLabel">label</span>
-        </div>
+    <div class="form-group">
+        <label class="form-label">Couleur</label>
+        <div class="duo-grid" id="duoGrid"></div>
     </div>
 
-    <script>
-        // ── Palette de couleurs ──────────────────────────────────────────────
-        const COLORS = [
-            { name: 'blue',    value: '#0969da' },
-            { name: 'green',   value: '#1a7f37' },
-            { name: 'purple',  value: '#8250df' },
-            { name: 'red',     value: '#cf222e' },
-            { name: 'orange',  value: '#9a6700' },
-            { name: 'cyan',    value: '#0a7490' },
-            { name: 'pink',    value: '#bf3989' },
-            { name: 'indigo',  value: '#2c6aba' },
-            { name: 'lime',    value: '#4d7c0f' },
-            { name: 'default', value: '#0969da' },
-        ];
+    <div class="form-group" id="calculGroup">
+        <label class="form-label" for="calculSelect">Type de calcul</label>
+        <select id="calculSelect">
+            <option value="row-count" selected>Compteur de lignes</option>
+            <optgroup label="Tous les champs">
+                <option value="empty">Vide</option>
+                <option value="filled">Rempli</option>
+                <option value="unique">Unique</option>
+                <option value="percent-empty">% Vide</option>
+                <option value="percent-filled">% Rempli</option>
+            </optgroup>
+            <optgroup label="Champs numériques uniquement">
+                <option value="sum">Somme</option>
+                <option value="average">Moyenne</option>
+                <option value="median">Médiane</option>
+                <option value="min">Minimum</option>
+                <option value="max">Maximum</option>
+            </optgroup>
+        </select>
+        <div class="info-msg" id="no-column-message">Aucune colonne sélectionnée — affichage du nombre de lignes.</div>
+        <div class="info-msg" id="non-numeric-message">Colonne non numérique — calculs numériques désactivés.</div>
+    </div>
 
-        let selectedColor = '#0969da';
+    <div class="form-group checkbox-row" id="euroCheckboxGroup">
+        <input type="checkbox" id="euroCheckbox">
+        <label for="euroCheckbox">Afficher le symbole €</label>
+    </div>
 
-        function buildColorGrid() {
-            const grid = document.getElementById('colorGrid');
-            COLORS.forEach(c => {
-                const sw = document.createElement('div');
-                sw.className = 'color-swatch' + (c.value === selectedColor ? ' selected' : '');
-                sw.style.background = c.value;
-                sw.title = c.name;
-                sw.dataset.value = c.value;
-                sw.onclick = () => {
-                    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-                    sw.classList.add('selected');
-                    selectedColor = c.value;
-                    updatePreview();
-                };
-                grid.appendChild(sw);
-            });
-        }
+    <div class="btn-group">
+        <button class="primary" onclick="saveOptions()">Enregistrer</button>
+        <button class="secondary" onclick="cancelOptions()">Annuler</button>
+    </div>
 
-        // ── Sécurité ─────────────────────────────────────────────────────────
-        function echapperHTML(texte) {
-            if (!texte && texte !== 0) return '';
-            const div = document.createElement('div');
-            div.textContent = String(texte);
-            return div.innerHTML;
-        }
+    <hr>
 
-        function formaterNombre(nombre, typeCalcul, avecEuro = false) {
-            if (typeof nombre !== 'number' || isNaN(nombre)) return '0';
-            const formatted = nombre.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-            if (typeCalcul && typeCalcul.startsWith('percent-')) return formatted + ' %';
-            return avecEuro ? formatted + ' €' : formatted;
-        }
+    <div class="preview-title">Prévisualisation</div>
+    <div class="preview-box" id="previewBox">
+        <div class="counter-value" id="previewCount">42</div>
+        <div class="counter-label" id="previewLabel">label</div>
+    </div>
+</div>
 
-        // ── État global ───────────────────────────────────────────────────────
-        let currentLabel = 'label';
-        let currentCouleur = '#0969da';
-        let currentCalcul = 'row-count';
-        let currentEuro = false;
-        let currentRecords = [];
-        let hasColumnMapping = false;
-        let isNumericColumn = false;
+<script>
+// ── Palette GitHub/Primer duos ─────────────────────────────────────────────
+const DUOS = [
+    { id: 'default',  name: 'Défaut',   bg: '#ffffff', text: '#1f2328' },
+    { id: 'subtle',   name: 'Gris',     bg: '#f6f8fa', text: '#1f2328' },
+    { id: 'green',    name: 'Vert',     bg: '#dafbe1', text: '#116329' },
+    { id: 'blue',     name: 'Bleu',     bg: '#ddf4ff', text: '#0550ae' },
+    { id: 'purple',   name: 'Violet',   bg: '#fbefff', text: '#6639ba' },
+    { id: 'red',      name: 'Rouge',    bg: '#ffebe9', text: '#a40e26' },
+    { id: 'orange',   name: 'Orange',   bg: '#fff1e5', text: '#953800' },
+    { id: 'yellow',   name: 'Jaune',    bg: '#fff8c5', text: '#7d4e00' },
+    { id: 'cyan',     name: 'Cyan',     bg: '#cff5f6', text: '#0e7490' },
+    { id: 'pink',     name: 'Rose',     bg: '#ffeff7', text: '#99286e' },
+    { id: 'gh-green', name: 'GH Vert',  bg: '#104c35', text: '#5fed83' },
+    { id: 'dark',     name: 'Sombre',   bg: '#1f2328', text: '#e6edf3' },
+];
 
-        // ── Utilitaires ───────────────────────────────────────────────────────
-        function applyAccentColor(el, color) {
-            el.style.setProperty('--accent-color', color || 'var(--gh-accent)');
-        }
+let selectedDuoId = 'default';
 
-        function detecterTypeColonne(records) {
-            if (!records || records.length === 0 || !hasColumnMapping) return false;
-            const mapped = grist.mapColumnNames(records);
-            for (let i = 0; i < Math.min(10, mapped.length); i++) {
-                const v = mapped[i].ColonneCalcul;
-                if (v != null && v !== '') return typeof v === 'number' || !isNaN(parseFloat(v));
-            }
-            return false;
-        }
+function buildDuoGrid() {
+    const grid = document.getElementById('duoGrid');
+    DUOS.forEach(duo => {
+        const sw = document.createElement('div');
+        sw.className = 'duo-swatch' + (duo.id === selectedDuoId ? ' selected' : '');
+        sw.style.background = duo.bg;
+        sw.dataset.id = duo.id;
 
-        function updateEuroCheckboxVisibility() {
-            const type = document.getElementById('calculSelect').value;
-            document.getElementById('euroCheckboxGroup').style.display =
-                type.startsWith('percent-') ? 'none' : 'flex';
-        }
+        const dot = document.createElement('div');
+        dot.className = 'dot';
+        dot.style.background = duo.text;
 
-        function updateCalculSelectState() {
-            const sel = document.getElementById('calculSelect');
-            const noCol = document.getElementById('no-column-message');
-            const nonNum = document.getElementById('non-numeric-message');
-            noCol.style.display = 'none';
-            nonNum.style.display = 'none';
-            Array.from(sel.options).forEach(o => o.disabled = false);
+        const name = document.createElement('span');
+        name.className = 'duo-name';
+        name.style.color = duo.text;
+        name.textContent = duo.name;
 
-            if (!hasColumnMapping) {
-                Array.from(sel.options).forEach(o => { if (o.value !== 'row-count') o.disabled = true; });
-                sel.value = 'row-count'; currentCalcul = 'row-count';
-                noCol.style.display = 'block';
-            } else if (!isNumericColumn) {
-                ['sum','average','median','min','max'].forEach(v => {
-                    const o = sel.querySelector(`option[value="${v}"]`);
-                    if (o) o.disabled = true;
-                });
-                if (['sum','average','median','min','max'].includes(sel.value)) {
-                    sel.value = 'row-count'; currentCalcul = 'row-count';
-                }
-                nonNum.style.display = 'block';
-            }
-            updateEuroCheckboxVisibility();
-        }
+        sw.appendChild(dot);
+        sw.appendChild(name);
+        sw.onclick = () => {
+            document.querySelectorAll('.duo-swatch').forEach(s => s.classList.remove('selected'));
+            sw.classList.add('selected');
+            selectedDuoId = duo.id;
+            updatePreview();
+        };
+        grid.appendChild(sw);
+    });
+}
 
-        // ── Calculs ───────────────────────────────────────────────────────────
-        function calculerValeur(records, typeCalcul) {
-            if (!records || records.length === 0) return 0;
-            if (typeCalcul === 'row-count') return records.length;
-            const mapped = grist.mapColumnNames(records);
-            switch (typeCalcul) {
-                case 'empty':         return mapped.filter(r => r.ColonneCalcul == null || r.ColonneCalcul === '').length;
-                case 'filled':        return mapped.filter(r => r.ColonneCalcul != null && r.ColonneCalcul !== '').length;
-                case 'unique':        return new Set(mapped.map(r => r.ColonneCalcul).filter(v => v != null && v !== '')).size;
-                case 'percent-empty': return parseFloat((mapped.filter(r => r.ColonneCalcul == null || r.ColonneCalcul === '').length / records.length * 100).toFixed(1));
-                case 'percent-filled':return parseFloat((mapped.filter(r => r.ColonneCalcul != null && r.ColonneCalcul !== '').length / records.length * 100).toFixed(1));
-                case 'sum':           return mapped.reduce((s, r) => { const v = parseFloat(r.ColonneCalcul); return s + (isNaN(v) ? 0 : v); }, 0);
-                case 'average': { const vals = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v)); return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0; }
-                case 'median': { const vals = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v)).sort((a,b)=>a-b); if (!vals.length) return 0; const m = Math.floor(vals.length/2); return vals.length%2 ? vals[m] : (vals[m-1]+vals[m])/2; }
-                case 'min': { const vals = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v)); return vals.length ? Math.min(...vals) : 0; }
-                case 'max': { const vals = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v)); return vals.length ? Math.max(...vals) : 0; }
-                default: return records.length;
-            }
-        }
+// ── Sécurité ──────────────────────────────────────────────────────────────
+function echapperHTML(texte) {
+    if (!texte && texte !== 0) return '';
+    const div = document.createElement('div');
+    div.textContent = String(texte);
+    return div.innerHTML;
+}
 
-        // ── Preview ───────────────────────────────────────────────────────────
-        function updatePreview() {
-            const label = document.getElementById('labelInput').value || 'label';
-            const calcul = document.getElementById('calculSelect').value;
-            const euro = document.getElementById('euroCheckbox').checked;
-            const color = selectedColor;
+function formaterNombre(nombre, typeCalcul, avecEuro = false) {
+    if (typeof nombre !== 'number' || isNaN(nombre)) return '0';
+    const formatted = nombre.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    if (typeCalcul && typeCalcul.startsWith('percent-')) return formatted + ' %';
+    return avecEuro ? formatted + ' €' : formatted;
+}
 
-            const previewCallout = document.getElementById('previewCallout');
-            applyAccentColor(previewCallout, color);
+// ── État global ────────────────────────────────────────────────────────────
+let currentLabel   = 'label';
+let currentDuoId   = 'default';
+let currentCalcul  = 'row-count';
+let currentEuro    = false;
+let currentRecords = [];
+let hasColumnMapping = false;
+let isNumericColumn  = false;
 
-            document.getElementById('previewLabel').textContent = label;
-            const exampleValue = calcul.startsWith('percent-') ? 75.5 : 42;
-            document.getElementById('previewCount').textContent = formaterNombre(exampleValue, calcul, euro);
-        }
+// ── Appliquer les couleurs ─────────────────────────────────────────────────
+function applyDuo(el, duoId) {
+    const duo = DUOS.find(d => d.id === duoId) || DUOS[0];
+    el.style.setProperty('--bg-color',   duo.bg);
+    el.style.setProperty('--text-color', duo.text);
+}
 
-        function setupPreviewListeners() {
-            document.getElementById('labelInput').addEventListener('input', updatePreview);
-            document.getElementById('calculSelect').addEventListener('change', () => { updateEuroCheckboxVisibility(); updatePreview(); });
-            document.getElementById('euroCheckbox').addEventListener('change', updatePreview);
-        }
+// ── Détection colonne ──────────────────────────────────────────────────────
+function detecterTypeColonne(records) {
+    if (!records || records.length === 0 || !hasColumnMapping) return false;
+    const mapped = grist.mapColumnNames(records);
+    for (let i = 0; i < Math.min(10, mapped.length); i++) {
+        const v = mapped[i].ColonneCalcul;
+        if (v != null && v !== '') return typeof v === 'number' || !isNaN(parseFloat(v));
+    }
+    return false;
+}
 
-        // ── Config open/close ─────────────────────────────────────────────────
-        function closeConfigPanel() {
-            document.getElementById('container').style.display = 'flex';
-            document.getElementById('config').style.display = 'none';
-        }
+function updateEuroCheckboxVisibility() {
+    const type = document.getElementById('calculSelect').value;
+    document.getElementById('euroCheckboxGroup').style.display =
+        type.startsWith('percent-') ? 'none' : 'flex';
+}
 
-        function saveOptions() {
-            const label = document.getElementById('labelInput').value;
-            const calcul = document.getElementById('calculSelect').value;
-            const euro = document.getElementById('euroCheckbox').checked;
-            grist.widgetApi.setOption('label', label);
-            grist.widgetApi.setOption('couleur', selectedColor);
-            grist.widgetApi.setOption('calcul', calcul);
-            grist.widgetApi.setOption('euro', euro);
-            closeConfigPanel();
-        }
+function updateCalculSelectState() {
+    const sel = document.getElementById('calculSelect');
+    document.getElementById('no-column-message').style.display = 'none';
+    document.getElementById('non-numeric-message').style.display = 'none';
+    Array.from(sel.options).forEach(o => o.disabled = false);
 
-        function cancelOptions() {
-            grist.widgetApi.clearOptions();
-            closeConfigPanel();
-        }
-
-        // ── Application des options ───────────────────────────────────────────
-        function appliquerOptions(options) {
-            options = options || {};
-            currentLabel   = options.label   !== undefined ? options.label   : 'label';
-            currentCouleur = options.couleur  !== undefined ? options.couleur : '#0969da';
-            currentCalcul  = options.calcul   !== undefined ? options.calcul  : 'row-count';
-            currentEuro    = options.euro     !== undefined ? options.euro    : false;
-
-            const numericCalculs = ['sum','average','median','min','max'];
-            if (!hasColumnMapping && currentCalcul !== 'row-count') { currentCalcul = 'row-count'; grist.widgetApi.setOption('calcul','row-count'); }
-            if (!isNumericColumn && numericCalculs.includes(currentCalcul)) { currentCalcul = 'row-count'; grist.widgetApi.setOption('calcul','row-count'); }
-
-            document.getElementById('rowLabel').textContent = echapperHTML(currentLabel);
-            applyAccentColor(document.getElementById('callout'), currentCouleur);
-
-            if (currentRecords.length > 0) mettreAJourCompteur(currentRecords);
-        }
-
-        function mettreAJourCompteur(records) {
-            currentRecords = records;
-            const valeur = calculerValeur(records, currentCalcul);
-            document.getElementById('rowCount').textContent = echapperHTML(formaterNombre(valeur, currentCalcul, currentEuro));
-        }
-
-        // ── Init Grist ────────────────────────────────────────────────────────
-        function initGrist() {
-            grist.ready({
-                columns: [{ name: 'ColonneCalcul', title: 'Colonne pour le calcul', type: 'Any', optional: true, description: 'Colonne sur laquelle effectuer le calcul' }],
-                requiredAccess: 'read table',
-                allowSelectBy: true,
-                onEditOptions() {
-                    document.getElementById('container').style.display = 'none';
-                    document.getElementById('config').style.display = 'block';
-                    document.getElementById('labelInput').value = currentLabel;
-                    document.getElementById('calculSelect').value = currentCalcul;
-                    document.getElementById('euroCheckbox').checked = currentEuro;
-
-                    // Sync selected color swatch
-                    selectedColor = currentCouleur;
-                    document.querySelectorAll('.color-swatch').forEach(sw => {
-                        sw.classList.toggle('selected', sw.dataset.value === selectedColor);
-                    });
-
-                    updateCalculSelectState();
-                    updatePreview();
-                }
-            });
-
-            grist.onOptions((customOptions) => {
-                customOptions = customOptions || {};
-                document.getElementById('container').style.display = 'flex';
-                document.getElementById('config').style.display = 'none';
-                appliquerOptions(customOptions);
-            });
-
-            grist.onRecords(function(records, mappings) {
-                hasColumnMapping = mappings && mappings.ColonneCalcul !== undefined && mappings.ColonneCalcul !== null;
-                isNumericColumn = detecterTypeColonne(records);
-                mettreAJourCompteur(records || []);
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            buildColorGrid();
-            initGrist();
-            setupPreviewListeners();
+    if (!hasColumnMapping) {
+        Array.from(sel.options).forEach(o => { if (o.value !== 'row-count') o.disabled = true; });
+        sel.value = 'row-count'; currentCalcul = 'row-count';
+        document.getElementById('no-column-message').style.display = 'block';
+    } else if (!isNumericColumn) {
+        ['sum','average','median','min','max'].forEach(v => {
+            const o = sel.querySelector(`option[value="${v}"]`);
+            if (o) o.disabled = true;
         });
-    </script>
+        if (['sum','average','median','min','max'].includes(sel.value)) {
+            sel.value = 'row-count'; currentCalcul = 'row-count';
+        }
+        document.getElementById('non-numeric-message').style.display = 'block';
+    }
+    updateEuroCheckboxVisibility();
+}
+
+// ── Calculs ────────────────────────────────────────────────────────────────
+function calculerValeur(records, typeCalcul) {
+    if (!records || records.length === 0) return 0;
+    if (typeCalcul === 'row-count') return records.length;
+    const mapped = grist.mapColumnNames(records);
+    switch (typeCalcul) {
+        case 'empty':         return mapped.filter(r => r.ColonneCalcul == null || r.ColonneCalcul === '').length;
+        case 'filled':        return mapped.filter(r => r.ColonneCalcul != null && r.ColonneCalcul !== '').length;
+        case 'unique':        return new Set(mapped.map(r => r.ColonneCalcul).filter(v => v != null && v !== '')).size;
+        case 'percent-empty': return parseFloat((mapped.filter(r => r.ColonneCalcul == null || r.ColonneCalcul === '').length / records.length * 100).toFixed(1));
+        case 'percent-filled':return parseFloat((mapped.filter(r => r.ColonneCalcul != null && r.ColonneCalcul !== '').length / records.length * 100).toFixed(1));
+        case 'sum':           return mapped.reduce((s, r) => { const v = parseFloat(r.ColonneCalcul); return s + (isNaN(v) ? 0 : v); }, 0);
+        case 'average': { const vals = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v)); return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0; }
+        case 'median': { const vals = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v)).sort((a,b)=>a-b); if (!vals.length) return 0; const m = Math.floor(vals.length/2); return vals.length%2 ? vals[m] : (vals[m-1]+vals[m])/2; }
+        case 'min': { const vals = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v)); return vals.length ? Math.min(...vals) : 0; }
+        case 'max': { const vals = mapped.map(r => parseFloat(r.ColonneCalcul)).filter(v => !isNaN(v)); return vals.length ? Math.max(...vals) : 0; }
+        default: return records.length;
+    }
+}
+
+// ── Preview ────────────────────────────────────────────────────────────────
+function updatePreview() {
+    const label  = document.getElementById('labelInput').value || 'label';
+    const calcul = document.getElementById('calculSelect').value;
+    const euro   = document.getElementById('euroCheckbox').checked;
+    const duo    = DUOS.find(d => d.id === selectedDuoId) || DUOS[0];
+
+    const box = document.getElementById('previewBox');
+    box.style.background = duo.bg;
+    box.style.setProperty('--text-color', duo.text);
+    box.style.setProperty('--bg-color',   duo.bg);
+
+    document.getElementById('previewLabel').textContent = label;
+    document.getElementById('previewCount').textContent = formaterNombre(
+        calcul.startsWith('percent-') ? 75.5 : 42, calcul, euro
+    );
+}
+
+function setupPreviewListeners() {
+    document.getElementById('labelInput').addEventListener('input', updatePreview);
+    document.getElementById('calculSelect').addEventListener('change', () => { updateEuroCheckboxVisibility(); updatePreview(); });
+    document.getElementById('euroCheckbox').addEventListener('change', updatePreview);
+}
+
+// ── Config open/close ──────────────────────────────────────────────────────
+function closeConfigPanel() {
+    document.getElementById('container').style.display = 'flex';
+    document.getElementById('config').style.display = 'none';
+}
+
+function saveOptions() {
+    grist.widgetApi.setOption('label',  document.getElementById('labelInput').value);
+    grist.widgetApi.setOption('duoId',  selectedDuoId);
+    grist.widgetApi.setOption('calcul', document.getElementById('calculSelect').value);
+    grist.widgetApi.setOption('euro',   document.getElementById('euroCheckbox').checked);
+    closeConfigPanel();
+}
+
+function cancelOptions() {
+    grist.widgetApi.clearOptions();
+    closeConfigPanel();
+}
+
+// ── Application des options ────────────────────────────────────────────────
+function appliquerOptions(options) {
+    options = options || {};
+    currentLabel  = options.label  !== undefined ? options.label  : 'label';
+    currentDuoId  = options.duoId  !== undefined ? options.duoId  : 'default';
+    currentCalcul = options.calcul !== undefined ? options.calcul : 'row-count';
+    currentEuro   = options.euro   !== undefined ? options.euro   : false;
+
+    const numericCalculs = ['sum','average','median','min','max'];
+    if (!hasColumnMapping && currentCalcul !== 'row-count') { currentCalcul = 'row-count'; grist.widgetApi.setOption('calcul','row-count'); }
+    if (!isNumericColumn && numericCalculs.includes(currentCalcul)) { currentCalcul = 'row-count'; grist.widgetApi.setOption('calcul','row-count'); }
+
+    document.getElementById('rowLabel').textContent = echapperHTML(currentLabel);
+    applyDuo(document.getElementById('container'), currentDuoId);
+
+    if (currentRecords.length > 0) mettreAJourCompteur(currentRecords);
+}
+
+function mettreAJourCompteur(records) {
+    currentRecords = records;
+    const valeur = calculerValeur(records, currentCalcul);
+    document.getElementById('rowCount').textContent = echapperHTML(formaterNombre(valeur, currentCalcul, currentEuro));
+}
+
+// ── Init Grist ─────────────────────────────────────────────────────────────
+function initGrist() {
+    grist.ready({
+        columns: [{ name: 'ColonneCalcul', title: 'Colonne pour le calcul', type: 'Any', optional: true }],
+        requiredAccess: 'read table',
+        allowSelectBy: true,
+        onEditOptions() {
+            document.getElementById('container').style.display = 'none';
+            document.getElementById('config').style.display = 'block';
+
+            document.getElementById('labelInput').value = currentLabel;
+            document.getElementById('calculSelect').value = currentCalcul;
+            document.getElementById('euroCheckbox').checked = currentEuro;
+
+            // Sync swatch selection
+            selectedDuoId = currentDuoId;
+            document.querySelectorAll('.duo-swatch').forEach(sw => {
+                sw.classList.toggle('selected', sw.dataset.id === selectedDuoId);
+            });
+
+            updateCalculSelectState();
+            updatePreview();
+        }
+    });
+
+    grist.onOptions(customOptions => {
+        customOptions = customOptions || {};
+        document.getElementById('container').style.display = 'flex';
+        document.getElementById('config').style.display = 'none';
+        appliquerOptions(customOptions);
+    });
+
+    grist.onRecords((records, mappings) => {
+        hasColumnMapping = mappings && mappings.ColonneCalcul !== undefined && mappings.ColonneCalcul !== null;
+        isNumericColumn  = detecterTypeColonne(records);
+        mettreAJourCompteur(records || []);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    buildDuoGrid();
+    initGrist();
+    setupPreviewListeners();
+});
+</script>
 </body>
 </html>
