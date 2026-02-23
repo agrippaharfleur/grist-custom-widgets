@@ -119,11 +119,11 @@
         input[type="text"]:focus,
         select:focus {
             border-color: var(--gh-accent);
-            box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.15);
+            box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.15);
         }
 
         select {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b949e' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23656d76' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 10px center;
             padding-right: 28px;
@@ -137,10 +137,10 @@
 
         .info-message {
             display: none;
-            background: rgba(31, 111, 235, 0.1);
-            border: 1px solid rgba(31, 111, 235, 0.3);
+            background: #dbeafe;
+            border: 1px solid #93c5fd;
             border-radius: var(--gh-radius);
-            color: #79c0ff;
+            color: #1d4ed8;
             font-size: 12px;
             padding: 6px 10px;
             margin-top: 6px;
@@ -304,19 +304,19 @@
     <script>
         // ── Palette de couleurs ──────────────────────────────────────────────
         const COLORS = [
-            { name: 'blue',    value: '#388bfd' },
-            { name: 'green',   value: '#3fb950' },
-            { name: 'purple',  value: '#bc8cff' },
-            { name: 'red',     value: '#f85149' },
-            { name: 'orange',  value: '#d29922' },
-            { name: 'cyan',    value: '#39d5c6' },
-            { name: 'pink',    value: '#ff7b72' },
-            { name: 'indigo',  value: '#79c0ff' },
-            { name: 'lime',    value: '#a5d46a' },
-            { name: 'default', value: '#1f6feb' },
+            { name: 'blue',    value: '#0969da' },
+            { name: 'green',   value: '#1a7f37' },
+            { name: 'purple',  value: '#8250df' },
+            { name: 'red',     value: '#cf222e' },
+            { name: 'orange',  value: '#9a6700' },
+            { name: 'cyan',    value: '#0a7490' },
+            { name: 'pink',    value: '#bf3989' },
+            { name: 'indigo',  value: '#2c6aba' },
+            { name: 'lime',    value: '#4d7c0f' },
+            { name: 'default', value: '#0969da' },
         ];
 
-        let selectedColor = '#388bfd';
+        let selectedColor = '#0969da';
 
         function buildColorGrid() {
             const grid = document.getElementById('colorGrid');
@@ -353,7 +353,7 @@
 
         // ── État global ───────────────────────────────────────────────────────
         let currentLabel = 'label';
-        let currentCouleur = '#388bfd';
+        let currentCouleur = '#0969da';
         let currentCalcul = 'row-count';
         let currentEuro = false;
         let currentRecords = [];
@@ -451,7 +451,6 @@
         function closeConfigPanel() {
             document.getElementById('container').style.display = 'flex';
             document.getElementById('config').style.display = 'none';
-            grist.widgetApi.clearOptions();
         }
 
         function saveOptions() {
@@ -465,13 +464,16 @@
             closeConfigPanel();
         }
 
-        function cancelOptions() { closeConfigPanel(); }
+        function cancelOptions() {
+            grist.widgetApi.clearOptions();
+            closeConfigPanel();
+        }
 
         // ── Application des options ───────────────────────────────────────────
         function appliquerOptions(options) {
             options = options || {};
             currentLabel   = options.label   !== undefined ? options.label   : 'label';
-            currentCouleur = options.couleur  !== undefined ? options.couleur : '#388bfd';
+            currentCouleur = options.couleur  !== undefined ? options.couleur : '#0969da';
             currentCalcul  = options.calcul   !== undefined ? options.calcul  : 'row-count';
             currentEuro    = options.euro     !== undefined ? options.euro    : false;
 
