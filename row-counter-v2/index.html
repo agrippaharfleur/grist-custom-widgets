@@ -444,8 +444,8 @@ function appliquerOptions(options) {
     currentEuro   = options.euro   !== undefined ? options.euro   : false;
 
     const numericCalculs = ['sum','average','median','min','max'];
-    if (!hasColumnMapping && currentCalcul !== 'row-count') { currentCalcul = 'row-count'; grist.widgetApi.setOption('calcul','row-count'); }
-    if (!isNumericColumn && numericCalculs.includes(currentCalcul)) { currentCalcul = 'row-count'; grist.widgetApi.setOption('calcul','row-count'); }
+    if (!hasColumnMapping && currentCalcul !== 'row-count') { currentCalcul = 'row-count'; }
+    if (!isNumericColumn && numericCalculs.includes(currentCalcul)) { currentCalcul = 'row-count'; }
 
     document.getElementById('rowLabel').textContent = echapperHTML(currentLabel);
     applyDuo(document.getElementById('container'), currentDuoId);
