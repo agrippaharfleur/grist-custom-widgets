@@ -32,11 +32,6 @@
             letter-spacing: 0.05em;
         }
 
-        /* ── Vue configuration ────────────────────────────────── */
-        #config {
-            max-width: 480px;
-        }
-
         /* ── Grille de swatches ───────────────────────────────── */
         .swatch-grid {
             display: grid;
@@ -84,6 +79,15 @@
         }
 
         #previewCallout .counter-value { font-size: 2rem; }
+
+        /* ── Label couleur ────────────────────────────────────── */
+        .config-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--text-default-grey);
+            margin-bottom: 0.25rem;
+        }
     </style>
 </head>
 <body>
@@ -96,22 +100,23 @@
     </div>
 </div>
 
-<!-- ── Vue configuration ────────────────────────────────────────────────── -->
+<!-- ── Vue configuration (masquée au départ via inline style) ───────────── -->
 <div id="config" style="display: none;">
 
+    <!-- Label -->
     <div class="fr-input-group">
         <label class="fr-label" for="labelInput">Label</label>
         <input class="fr-input" type="text" id="labelInput" placeholder="Ex. : Commandes en attente">
     </div>
 
-    <fieldset class="fr-fieldset fr-mt-2w">
-        <legend class="fr-fieldset__legend fr-text--regular fr-mb-0">Couleur</legend>
-        <div class="fr-fieldset__content">
-            <div class="swatch-grid" id="swatchGrid"></div>
-        </div>
-    </fieldset>
+    <!-- Couleur — div simple, pas de composant DSFR JS -->
+    <div style="margin-top: 1.5rem;">
+        <span class="config-label">Couleur</span>
+        <div class="swatch-grid" id="swatchGrid"></div>
+    </div>
 
-    <div class="fr-mt-3w">
+    <!-- Prévisualisation -->
+    <div style="margin-top: 1.5rem;">
         <p class="preview-titre">Prévisualisation</p>
         <div class="fr-callout" id="previewCallout">
             <p class="fr-callout__title counter-value" id="previewCount">42</p>
@@ -119,10 +124,11 @@
         </div>
     </div>
 
-    <div class="fr-btns-group fr-btns-group--inline-sm fr-mt-3w">
-        <button class="fr-btn" onclick="enregistrerOptions()">Enregistrer</button>
-        <button class="fr-btn fr-btn--secondary" onclick="annulerOptions()">Annuler</button>
-    </div>
+    <!-- Boutons -->
+    <ul class="fr-btns-group fr-btns-group--inline-sm" style="margin-top: 1.5rem;">
+        <li><button class="fr-btn" onclick="enregistrerOptions()">Enregistrer</button></li>
+        <li><button class="fr-btn fr-btn--secondary" onclick="annulerOptions()">Annuler</button></li>
+    </ul>
 
 </div>
 
@@ -178,24 +184,26 @@ function getCouleurSelectionnee() {
 function construireSwatches() {
     var grid = document.getElementById('swatchGrid');
     COULEURS.forEach(function(couleur) {
-        var sw     = document.createElement('div');
+        var sw        = document.createElement('div');
         sw.className  = 'swatch';
         sw.dataset.id = couleur.id;
         sw.title      = couleur.nom;
 
-        var apercu = document.createElement('div');
-        apercu.className            = 'swatch-apercu';
-        apercu.style.backgroundColor = couleur.bg;
+        var apercu                    = document.createElement('div');
+        apercu.className              = 'swatch-apercu';
+        apercu.style.backgroundColor  = couleur.bg;
         apercu.style.borderLeftColor  = couleur.border;
 
-        var nom = document.createElement('span');
+        var nom         = document.createElement('span');
         nom.className   = 'swatch-nom';
         nom.textContent = couleur.nom;
 
         sw.appendChild(apercu);
         sw.appendChild(nom);
         sw.addEventListener('click', function() {
-            document.querySelectorAll('.swatch').forEach(function(s) { s.classList.remove('selected'); });
+            document.querySelectorAll('.swatch').forEach(function(s) {
+                s.classList.remove('selected');
+            });
             sw.classList.add('selected');
             mettreAJourPrevisualisation();
         });
@@ -228,7 +236,7 @@ function annulerOptions() {
     document.getElementById('config').style.display    = 'none';
 }
 
-// ── Initialisation Grist ── même pattern que l'exemple fonctionnel ─────────
+// ── Initialisation Grist ───────────────────────────────────────────────────
 function initGrist() {
     construireSwatches();
     document.getElementById('labelInput').addEventListener('input', mettreAJourPrevisualisation);
@@ -237,10 +245,8 @@ function initGrist() {
         requiredAccess: 'read table',
         allowSelectBy: true,
         onEditOptions() {
-            // Snapshot pour le vrai annuler
             snapshot = { label: labelCourant, couleurId: couleurCourante };
 
-            // Pré-remplir le formulaire
             document.getElementById('labelInput').value = labelCourant;
             document.querySelectorAll('.swatch').forEach(function(sw) {
                 sw.classList.toggle('selected', sw.dataset.id === couleurCourante);
@@ -248,7 +254,7 @@ function initGrist() {
             mettreAJourPrevisualisation();
 
             document.getElementById('container').style.display = 'none';
-            document.getElementById('config').style.display    = 'block';
+            document.getElementById('config').style.display    = '';  // même pattern que l'exemple
         },
     });
 
