@@ -34,7 +34,6 @@
 
         /* ── Vue configuration ────────────────────────────────── */
         #config {
-            display: none;
             max-width: 480px;
         }
 
@@ -98,7 +97,7 @@
 </div>
 
 <!-- ── Vue configuration ────────────────────────────────────────────────── -->
-<div id="config">
+<div id="config" style="display: none;">
 
     <div class="fr-input-group">
         <label class="fr-label" for="labelInput">Label</label>
@@ -249,7 +248,7 @@ function initGrist() {
             mettreAJourPrevisualisation();
 
             document.getElementById('container').style.display = 'none';
-            document.getElementById('config').style.display    = '';
+            document.getElementById('config').style.display    = 'block';
         },
     });
 
