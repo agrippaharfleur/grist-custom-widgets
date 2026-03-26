@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://docs.getgrist.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://docs.getgrist.com https://cdn.jsdelivr.net;">
     <title>Compteur de lignes</title>
     <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 
@@ -59,7 +58,7 @@
             transition: border-color 0.15s;
         }
 
-        .swatch:hover   { border-color: var(--border-action-high-blue-france); }
+        .swatch:hover    { border-color: var(--border-action-high-blue-france); }
         .swatch.selected { border-color: var(--border-action-high-blue-france); }
 
         .swatch-apercu {
@@ -91,7 +90,7 @@
 <body>
 
 <!-- ── Vue normale ──────────────────────────────────────────────────────── -->
-<div id="view">
+<div id="container">
     <div class="fr-callout" id="callout">
         <p class="fr-callout__title counter-value" id="rowCount">0</p>
         <p class="counter-label" id="rowLabel">Label</p>
@@ -101,23 +100,18 @@
 <!-- ── Vue configuration ────────────────────────────────────────────────── -->
 <div id="config">
 
-    <!-- Label -->
     <div class="fr-input-group">
         <label class="fr-label" for="labelInput">Label</label>
         <input class="fr-input" type="text" id="labelInput" placeholder="Ex. : Commandes en attente">
     </div>
 
-    <!-- Couleur -->
-    <fieldset class="fr-fieldset fr-mt-2w" id="colorFieldset">
-        <legend class="fr-fieldset__legend fr-text--regular fr-mb-0">
-            Couleur
-        </legend>
+    <fieldset class="fr-fieldset fr-mt-2w">
+        <legend class="fr-fieldset__legend fr-text--regular fr-mb-0">Couleur</legend>
         <div class="fr-fieldset__content">
             <div class="swatch-grid" id="swatchGrid"></div>
         </div>
     </fieldset>
 
-    <!-- Prévisualisation -->
     <div class="fr-mt-3w">
         <p class="preview-titre">Prévisualisation</p>
         <div class="fr-callout" id="previewCallout">
@@ -126,10 +120,9 @@
         </div>
     </div>
 
-    <!-- Boutons -->
     <div class="fr-btns-group fr-btns-group--inline-sm fr-mt-3w">
-        <button class="fr-btn" id="saveBtn">Enregistrer</button>
-        <button class="fr-btn fr-btn--secondary" id="cancelBtn">Annuler</button>
+        <button class="fr-btn" onclick="enregistrerOptions()">Enregistrer</button>
+        <button class="fr-btn fr-btn--secondary" onclick="annulerOptions()">Annuler</button>
     </div>
 
 </div>
@@ -139,10 +132,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/dsfr.nomodule.min.js" nomodule></script>
 
 <script>
-'use strict';
-
 // ── Palette DSFR callout ───────────────────────────────────────────────────
-const COULEURS = [
+var COULEURS = [
     { id: '',                    nom: 'Gris',      bg: '#f5f5fe', border: '#6a6af4' },
     { id: 'blue-france',         nom: 'Bleu',      bg: '#e8edff', border: '#000091' },
     { id: 'green-emeraude',      nom: 'Emeraude',  bg: '#b8fec9', border: '#00a95f' },
@@ -156,7 +147,7 @@ const COULEURS = [
 // ── Module de sécurité ─────────────────────────────────────────────────────
 function echapperHTML(texte) {
     if (!texte && texte !== 0) return '';
-    const div = document.createElement('div');
+    var div = document.createElement('div');
     div.textContent = String(texte);
     return div.innerHTML;
 }
@@ -166,11 +157,12 @@ function formaterNombre(nombre) {
     return nombre.toLocaleString('fr-FR');
 }
 
-// ── État courant + snapshot pour annuler ───────────────────────────────────
-let etatCourant            = { label: 'Label', couleurId: '' };
-let snapshotAvantOuverture = null;
+// ── État global ────────────────────────────────────────────────────────────
+var labelCourant    = 'Label';
+var couleurCourante = '';
+var snapshot        = null;
 
-// ── Appliquer une couleur DSFR sur un fr-callout ───────────────────────────
+// ── Couleur ────────────────────────────────────────────────────────────────
 function appliquerCouleur(el, couleurId) {
     COULEURS.forEach(function(c) {
         if (c.id) el.classList.remove('fr-callout--' + c.id);
@@ -178,17 +170,22 @@ function appliquerCouleur(el, couleurId) {
     if (couleurId) el.classList.add('fr-callout--' + couleurId);
 }
 
-// ── Construire la grille de swatches ──────────────────────────────────────
+function getCouleurSelectionnee() {
+    var sel = document.querySelector('.swatch.selected');
+    return sel ? sel.dataset.id : '';
+}
+
+// ── Swatches ───────────────────────────────────────────────────────────────
 function construireSwatches() {
     var grid = document.getElementById('swatchGrid');
     COULEURS.forEach(function(couleur) {
-        var sw = document.createElement('div');
-        sw.className = 'swatch';
+        var sw     = document.createElement('div');
+        sw.className  = 'swatch';
         sw.dataset.id = couleur.id;
-        sw.setAttribute('title', couleur.nom);
+        sw.title      = couleur.nom;
 
         var apercu = document.createElement('div');
-        apercu.className = 'swatch-apercu';
+        apercu.className            = 'swatch-apercu';
         apercu.style.backgroundColor = couleur.bg;
         apercu.style.borderLeftColor  = couleur.border;
 
@@ -198,11 +195,8 @@ function construireSwatches() {
 
         sw.appendChild(apercu);
         sw.appendChild(nom);
-
         sw.addEventListener('click', function() {
-            document.querySelectorAll('.swatch').forEach(function(s) {
-                s.classList.remove('selected');
-            });
+            document.querySelectorAll('.swatch').forEach(function(s) { s.classList.remove('selected'); });
             sw.classList.add('selected');
             mettreAJourPrevisualisation();
         });
@@ -211,102 +205,73 @@ function construireSwatches() {
     });
 }
 
-// ── Lire la couleur sélectionnée ──────────────────────────────────────────
-function getCouleurSelectionnee() {
-    var sel = document.querySelector('.swatch.selected');
-    return sel ? sel.dataset.id : '';
-}
-
-// ── Prévisualisation ──────────────────────────────────────────────────────
+// ── Prévisualisation ───────────────────────────────────────────────────────
 function mettreAJourPrevisualisation() {
-    var label = document.getElementById('labelInput').value;
-    document.getElementById('previewLabel').textContent = label || 'Label';
+    var label = document.getElementById('labelInput').value || 'Label';
+    document.getElementById('previewLabel').textContent = label;
     appliquerCouleur(document.getElementById('previewCallout'), getCouleurSelectionnee());
 }
 
-// ── Ouvrir le panneau de configuration ───────────────────────────────────
-function ouvrirConfig() {
-    // Snapshot pour le vrai annuler
-    snapshotAvantOuverture = { label: etatCourant.label, couleurId: etatCourant.couleurId };
-
-    // Pré-remplir le formulaire
-    document.getElementById('labelInput').value = etatCourant.label;
-
-    // Synchroniser la swatch sélectionnée
-    document.querySelectorAll('.swatch').forEach(function(sw) {
-        sw.classList.toggle('selected', sw.dataset.id === etatCourant.couleurId);
-    });
-
-    mettreAJourPrevisualisation();
-
-    document.getElementById('view').style.display   = 'none';
-    document.getElementById('config').style.display = 'block';
-}
-
-// ── Fermer le panneau ─────────────────────────────────────────────────────
-function fermerConfig() {
-    document.getElementById('view').style.display   = 'block';
-    document.getElementById('config').style.display = 'none';
-}
-
-// ── Enregistrer ───────────────────────────────────────────────────────────
+// ── Enregistrer / Annuler ──────────────────────────────────────────────────
 function enregistrerOptions() {
-    var label     = document.getElementById('labelInput').value || 'Label';
-    var couleurId = getCouleurSelectionnee();
-
-    grist.widgetApi.setOption('label',     label);
-    grist.widgetApi.setOption('couleurId', couleurId);
-
-    fermerConfig();
+    grist.widgetApi.setOption('label',     document.getElementById('labelInput').value || 'Label');
+    grist.widgetApi.setOption('couleurId', getCouleurSelectionnee());
 }
 
-// ── Annuler — restaure l'état avant ouverture ─────────────────────────────
 function annulerOptions() {
-    if (snapshotAvantOuverture !== null) {
-        appliquerOptions(snapshotAvantOuverture);
+    if (snapshot !== null) {
+        labelCourant    = snapshot.label;
+        couleurCourante = snapshot.couleurId;
+        document.getElementById('rowLabel').textContent = echapperHTML(labelCourant);
+        appliquerCouleur(document.getElementById('callout'), couleurCourante);
     }
-    fermerConfig();
+    document.getElementById('container').style.display = '';
+    document.getElementById('config').style.display    = 'none';
 }
 
-// ── Appliquer les options reçues de Grist ────────────────────────────────
-function appliquerOptions(options) {
-    options = options || {};
-    etatCourant.label     = options.label     !== undefined ? options.label     : 'Label';
-    etatCourant.couleurId = options.couleurId !== undefined ? options.couleurId : '';
-
-    document.getElementById('rowLabel').textContent = echapperHTML(etatCourant.label);
-    appliquerCouleur(document.getElementById('callout'), etatCourant.couleurId);
-}
-
-// ── DOMContentLoaded ──────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
+// ── Initialisation Grist ── même pattern que l'exemple fonctionnel ─────────
+function initGrist() {
     construireSwatches();
-
     document.getElementById('labelInput').addEventListener('input', mettreAJourPrevisualisation);
-    document.getElementById('saveBtn').addEventListener('click', enregistrerOptions);
-    document.getElementById('cancelBtn').addEventListener('click', annulerOptions);
 
-    // Déclaration à Grist
     grist.ready({
         requiredAccess: 'read table',
-        allowSelectBy:  true,
-        onEditOptions: function() {
-            ouvrirConfig();
-        }
+        allowSelectBy: true,
+        onEditOptions() {
+            // Snapshot pour le vrai annuler
+            snapshot = { label: labelCourant, couleurId: couleurCourante };
+
+            // Pré-remplir le formulaire
+            document.getElementById('labelInput').value = labelCourant;
+            document.querySelectorAll('.swatch').forEach(function(sw) {
+                sw.classList.toggle('selected', sw.dataset.id === couleurCourante);
+            });
+            mettreAJourPrevisualisation();
+
+            document.getElementById('container').style.display = 'none';
+            document.getElementById('config').style.display    = '';
+        },
     });
 
-    // Appelé au chargement et à chaque modification des options
-    grist.onOptions(function(options) {
-        appliquerOptions(options || {});
-        fermerConfig();
+    grist.onOptions(function(customOptions) {
+        customOptions   = customOptions || {};
+        labelCourant    = customOptions.label     !== undefined ? customOptions.label     : 'Label';
+        couleurCourante = customOptions.couleurId !== undefined ? customOptions.couleurId : '';
+
+        document.getElementById('rowLabel').textContent = echapperHTML(labelCourant);
+        appliquerCouleur(document.getElementById('callout'), couleurCourante);
+
+        document.getElementById('container').style.display = '';
+        document.getElementById('config').style.display    = 'none';
     });
 
-    // Mise à jour du compteur
     grist.onRecords(function(records) {
         var total = records ? records.length : 0;
         document.getElementById('rowCount').textContent = formaterNombre(total);
     });
-});
+}
+
+document.addEventListener('DOMContentLoaded', initGrist);
 </script>
 </body>
 </html>
