@@ -1,24 +1,36 @@
 <!DOCTYPE html>
+<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+     MINISTÈRE DE L'EUROPE ET DES AFFAIRES ÉTRANGÈRES
+     DNUM / SIN / PSI / CSNC
+     ─────────────────────────────────────────────────────────────────────────
+     Widget    : Compteur de lignes
+     Version   : 1.0 — 2026
+     Auteur    : CSNC
+     Dépendances : DSFR 1.13.1 · grist-plugin-api.js
+     ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Compteur de lignes</title>
+
+    <!-- API Grist -->
     <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 
-    <!-- DSFR CSS -->
+    <!-- DSFR CSS — version (1.13.1) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/dsfr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/utility/utilities.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/utility/icons/icons.min.css">
 
     <style>
+        /* === SECTION : LAYOUT === */
         body {
             margin: 0;
             padding: 1rem;
             background-color: var(--background-default-grey);
         }
 
-        /* ── Vue normale ──────────────────────────────────────── */
+        /* === SECTION : VUE NORMALE === */
         .counter-value {
             font-size: 3rem;
             font-weight: 700;
@@ -32,7 +44,7 @@
             letter-spacing: 0.05em;
         }
 
-        /* ── Grille de swatches ───────────────────────────────── */
+        /* === SECTION : SWATCHES === */
         .swatch-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -68,7 +80,7 @@
             color: var(--text-mention-grey);
         }
 
-        /* ── Prévisualisation ─────────────────────────────────── */
+        /* === SECTION : PRÉVISUALISATION === */
         .preview-titre {
             font-size: 0.75rem;
             font-weight: 700;
@@ -80,7 +92,6 @@
 
         #previewCallout .counter-value { font-size: 2rem; }
 
-        /* ── Label couleur ────────────────────────────────────── */
         .config-label {
             display: block;
             font-size: 0.875rem;
@@ -92,52 +103,107 @@
 </head>
 <body>
 
-<!-- ── Vue normale ──────────────────────────────────────────────────────── -->
-<div id="container">
-    <div class="fr-callout" id="callout">
-        <p class="fr-callout__title counter-value" id="rowCount">0</p>
-        <p class="counter-label" id="rowLabel">Label</p>
-    </div>
-</div>
-
-<!-- ── Vue configuration (masquée au départ via inline style) ───────────── -->
-<div id="config" style="display: none;">
-
-    <!-- Label -->
-    <div class="fr-input-group">
-        <label class="fr-label" for="labelInput">Label</label>
-        <input class="fr-input" type="text" id="labelInput" placeholder="Ex. : Commandes en attente">
-    </div>
-
-    <!-- Couleur — div simple, pas de composant DSFR JS -->
-    <div style="margin-top: 1.5rem;">
-        <span class="config-label">Couleur</span>
-        <div class="swatch-grid" id="swatchGrid"></div>
-    </div>
-
-    <!-- Prévisualisation -->
-    <div style="margin-top: 1.5rem;">
-        <p class="preview-titre">Prévisualisation</p>
-        <div class="fr-callout" id="previewCallout">
-            <p class="fr-callout__title counter-value" id="previewCount">42</p>
-            <p class="counter-label" id="previewLabel">Label</p>
+    <!-- === SECTION : BANNIÈRES ET ALERTES === -->
+    <div id="error-banner" style="display: none;" role="alert" aria-live="assertive">
+        <div class="fr-alert fr-alert--error fr-alert--sm">
+            <p id="error-message">Une erreur est survenue.</p>
         </div>
     </div>
 
-    <!-- Boutons -->
-    <ul class="fr-btns-group fr-btns-group--inline-sm" style="margin-top: 1.5rem;">
-        <li><button class="fr-btn" onclick="enregistrerOptions()">Enregistrer</button></li>
-        <li><button class="fr-btn fr-btn--secondary" onclick="annulerOptions()">Annuler</button></li>
-    </ul>
+    <div id="loader" style="display: none;" aria-live="polite">
+        <div class="fr-notice fr-notice--info">
+            <p class="fr-notice__title">Chargement en cours…</p>
+        </div>
+    </div>
 
-</div>
+    <!-- === SECTION : VUE NORMALE === -->
+    <div id="container">
+        <div class="fr-callout" id="callout">
+            <p class="fr-callout__title counter-value" id="rowCount">0</p>
+            <p class="counter-label" id="rowLabel">Label</p>
+        </div>
+    </div>
 
-<!-- DSFR JS -->
-<script src="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/dsfr.module.min.js" type="module"></script>
-<script src="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/dsfr.nomodule.min.js" nomodule></script>
+    <!-- === SECTION : VUE CONFIGURATION === -->
+    <div id="config" style="display: none;">
+
+        <div class="fr-input-group">
+            <label class="fr-label" for="labelInput">Label</label>
+            <input class="fr-input" type="text" id="labelInput"
+                   placeholder="Ex. : Commandes en attente"
+                   autocomplete="off">
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+            <span class="config-label">Couleur</span>
+            <div class="swatch-grid" id="swatchGrid"></div>
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+            <p class="preview-titre">Prévisualisation</p>
+            <div class="fr-callout" id="previewCallout">
+                <p class="fr-callout__title counter-value" id="previewCount">42</p>
+                <p class="counter-label" id="previewLabel">Label</p>
+            </div>
+        </div>
+
+        <ul class="fr-btns-group fr-btns-group--inline-sm" style="margin-top: 1.5rem;">
+            <li><button class="fr-btn" onclick="enregistrerOptions()">Enregistrer</button></li>
+            <li><button class="fr-btn fr-btn--secondary" onclick="annulerOptions()">Annuler</button></li>
+        </ul>
+
+    </div>
+
+    <!-- DSFR JS — version (1.13.1) -->
+    <script src="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/dsfr.module.min.js" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/dsfr.nomodule.min.js" nomodule></script>
 
 <script>
-// ── Palette DSFR callout ───────────────────────────────────────────────────
+'use strict';
+
+// ============= SECTION : SÉCURITÉ =============
+
+function echapperHTML(texte) {
+    if (!texte && texte !== 0) return '';
+    var div = document.createElement('div');
+    div.textContent = String(texte);
+    return div.innerHTML;
+}
+
+// ============= SECTION : UI FEEDBACK =============
+
+/**
+ * Affiche la bannière d'erreur avec un message générique (sans détails techniques).
+ * @param {string} msg - Message d'erreur à afficher
+ */
+function afficherErreur(msg) {
+    var banner = document.getElementById('error-banner');
+    var message = document.getElementById('error-message');
+    if (message) message.textContent = msg || 'Une erreur est survenue.';
+    if (banner) banner.style.display = '';
+}
+
+/** Masque la bannière d'erreur. */
+function masquerErreur() {
+    var banner = document.getElementById('error-banner');
+    if (banner) banner.style.display = 'none';
+}
+
+/** Affiche le loader. */
+function afficherLoader() {
+    var loader = document.getElementById('loader');
+    if (loader) loader.style.display = '';
+}
+
+/** Masque le loader. */
+function masquerLoader() {
+    var loader = document.getElementById('loader');
+    if (loader) loader.style.display = 'none';
+}
+
+// ============= SECTION : CONFIGURATION =============
+
+/* Palette des couleurs DSFR pour le fr-callout */
 var COULEURS = [
     { id: '',                    nom: 'Gris',      bg: '#f5f5fe', border: '#6a6af4' },
     { id: 'blue-france',         nom: 'Bleu',      bg: '#e8edff', border: '#000091' },
@@ -149,25 +215,19 @@ var COULEURS = [
     { id: 'yellow-tournesol',    nom: 'Tournesol', bg: '#fef7da', border: '#c8aa39' },
 ];
 
-// ── Module de sécurité ─────────────────────────────────────────────────────
-function echapperHTML(texte) {
-    if (!texte && texte !== 0) return '';
-    var div = document.createElement('div');
-    div.textContent = String(texte);
-    return div.innerHTML;
-}
+// ============= SECTION : STATE =============
 
-function formaterNombre(nombre) {
-    if (typeof nombre !== 'number' || isNaN(nombre)) return '0';
-    return nombre.toLocaleString('fr-FR');
-}
-
-// ── État global ────────────────────────────────────────────────────────────
 var labelCourant    = 'Label';
 var couleurCourante = '';
 var snapshot        = null;
 
-// ── Couleur ────────────────────────────────────────────────────────────────
+// ============= SECTION : RENDU ET AFFICHAGE =============
+
+/**
+ * Applique une couleur DSFR sur un élément fr-callout.
+ * @param {HTMLElement} el - Élément cible
+ * @param {string} couleurId - Identifiant de couleur (ex: 'blue-france')
+ */
 function appliquerCouleur(el, couleurId) {
     COULEURS.forEach(function(c) {
         if (c.id) el.classList.remove('fr-callout--' + c.id);
@@ -175,12 +235,13 @@ function appliquerCouleur(el, couleurId) {
     if (couleurId) el.classList.add('fr-callout--' + couleurId);
 }
 
+/** Retourne l'identifiant de la couleur sélectionnée dans le panneau. */
 function getCouleurSelectionnee() {
     var sel = document.querySelector('.swatch.selected');
     return sel ? sel.dataset.id : '';
 }
 
-// ── Swatches ───────────────────────────────────────────────────────────────
+/** Construit la grille de swatches dans le panneau de configuration. */
 function construireSwatches() {
     var grid = document.getElementById('swatchGrid');
     COULEURS.forEach(function(couleur) {
@@ -189,10 +250,10 @@ function construireSwatches() {
         sw.dataset.id = couleur.id;
         sw.title      = couleur.nom;
 
-        var apercu                    = document.createElement('div');
-        apercu.className              = 'swatch-apercu';
-        apercu.style.backgroundColor  = couleur.bg;
-        apercu.style.borderLeftColor  = couleur.border;
+        var apercu                   = document.createElement('div');
+        apercu.className             = 'swatch-apercu';
+        apercu.style.backgroundColor = couleur.bg;
+        apercu.style.borderLeftColor = couleur.border;
 
         var nom         = document.createElement('span');
         nom.className   = 'swatch-nom';
@@ -212,33 +273,50 @@ function construireSwatches() {
     });
 }
 
-// ── Prévisualisation ───────────────────────────────────────────────────────
+/** Met à jour la prévisualisation dans le panneau de configuration. */
 function mettreAJourPrevisualisation() {
     var label = document.getElementById('labelInput').value || 'Label';
     document.getElementById('previewLabel').textContent = label;
     appliquerCouleur(document.getElementById('previewCallout'), getCouleurSelectionnee());
 }
 
-// ── Enregistrer / Annuler ──────────────────────────────────────────────────
+// ============= SECTION : GESTION DES ÉVÉNEMENTS =============
+
+/** Enregistre les options via l'API Grist. */
 function enregistrerOptions() {
-    grist.widgetApi.setOption('label',     document.getElementById('labelInput').value || 'Label');
-    grist.widgetApi.setOption('couleurId', getCouleurSelectionnee());
+    try {
+        grist.widgetApi.setOption('label',     document.getElementById('labelInput').value || 'Label');
+        grist.widgetApi.setOption('couleurId', getCouleurSelectionnee());
+    } catch (e) {
+        afficherErreur('Impossible d\'enregistrer la configuration.');
+    }
 }
 
+/**
+ * Annule les modifications et restaure l'état avant ouverture du panneau.
+ */
 function annulerOptions() {
     if (snapshot !== null) {
         labelCourant    = snapshot.label;
         couleurCourante = snapshot.couleurId;
-        document.getElementById('rowLabel').textContent = echapperHTML(labelCourant);
+        document.getElementById('rowLabel').textContent = labelCourant;
         appliquerCouleur(document.getElementById('callout'), couleurCourante);
     }
     document.getElementById('container').style.display = '';
     document.getElementById('config').style.display    = 'none';
 }
 
-// ── Initialisation Grist ───────────────────────────────────────────────────
+// ============= SECTION : INITIALISATION =============
+
+/**
+ * Initialise le widget Grist.
+ * Appelé sur DOMContentLoaded.
+ */
 function initGrist() {
     construireSwatches();
+    masquerErreur();
+    masquerLoader();
+
     document.getElementById('labelInput').addEventListener('input', mettreAJourPrevisualisation);
 
     grist.ready({
@@ -254,7 +332,7 @@ function initGrist() {
             mettreAJourPrevisualisation();
 
             document.getElementById('container').style.display = 'none';
-            document.getElementById('config').style.display    = '';  // même pattern que l'exemple
+            document.getElementById('config').style.display    = '';
         },
     });
 
@@ -263,7 +341,7 @@ function initGrist() {
         labelCourant    = customOptions.label     !== undefined ? customOptions.label     : 'Label';
         couleurCourante = customOptions.couleurId !== undefined ? customOptions.couleurId : '';
 
-        document.getElementById('rowLabel').textContent = echapperHTML(labelCourant);
+        document.getElementById('rowLabel').textContent = labelCourant;
         appliquerCouleur(document.getElementById('callout'), couleurCourante);
 
         document.getElementById('container').style.display = '';
@@ -271,12 +349,19 @@ function initGrist() {
     });
 
     grist.onRecords(function(records) {
-        var total = records ? records.length : 0;
-        document.getElementById('rowCount').textContent = formaterNombre(total);
+        try {
+            masquerErreur();
+            var total = records ? records.length : 0;
+            document.getElementById('rowCount').textContent = total.toLocaleString('fr-FR');
+        } catch (e) {
+            afficherErreur('Erreur lors de la mise à jour du compteur.');
+        }
     });
 }
 
 document.addEventListener('DOMContentLoaded', initGrist);
+
+console.log('Module de sécurité chargé — Compteur de lignes v1.0');
 </script>
 </body>
 </html>
