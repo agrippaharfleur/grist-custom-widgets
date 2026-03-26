@@ -19,7 +19,7 @@
             background-color: var(--background-default-grey);
         }
 
-        /* ── Vue normale ─────────────────────────────────────── */
+        /* ── Vue normale ──────────────────────────────────────── */
         .counter-value {
             font-size: 3rem;
             font-weight: 700;
@@ -33,13 +33,13 @@
             letter-spacing: 0.05em;
         }
 
-        /* ── Vue configuration ───────────────────────────────── */
+        /* ── Vue configuration ────────────────────────────────── */
         #config {
             display: none;
             max-width: 480px;
         }
 
-        /* ── Grille de swatches ──────────────────────────────── */
+        /* ── Grille de swatches ───────────────────────────────── */
         .swatch-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -59,7 +59,7 @@
             transition: border-color 0.15s;
         }
 
-        .swatch:hover { border-color: var(--border-action-high-blue-france); }
+        .swatch:hover   { border-color: var(--border-action-high-blue-france); }
         .swatch.selected { border-color: var(--border-action-high-blue-france); }
 
         .swatch-apercu {
@@ -75,7 +75,7 @@
             color: var(--text-mention-grey);
         }
 
-        /* ── Prévisualisation ────────────────────────────────── */
+        /* ── Prévisualisation ─────────────────────────────────── */
         .preview-titre {
             font-size: 0.75rem;
             font-weight: 700;
@@ -142,16 +142,15 @@
 'use strict';
 
 // ── Palette DSFR callout ───────────────────────────────────────────────────
-// bg et border : valeurs approximatives pour l'aperçu des swatches
 const COULEURS = [
-    { id: '',                     nom: 'Gris',      bg: '#f5f5fe', border: '#6a6af4' },
-    { id: 'blue-france',          nom: 'Bleu',      bg: '#e8edff', border: '#000091' },
-    { id: 'green-emeraude',       nom: 'Émeraude',  bg: '#b8fec9', border: '#00a95f' },
-    { id: 'green-menthe',         nom: 'Menthe',    bg: '#c3faf4', border: '#009081' },
-    { id: 'orange-terre-battue',  nom: 'Orange',    bg: '#ffe9e6', border: '#e4794a' },
-    { id: 'pink-macaron',         nom: 'Rose',      bg: '#fee7fc', border: '#d63b87' },
-    { id: 'purple-glycine',       nom: 'Glycine',   bg: '#f0e4fd', border: '#a558d4' },
-    { id: 'yellow-tournesol',     nom: 'Tournesol', bg: '#fef7da', border: '#c8aa39' },
+    { id: '',                    nom: 'Gris',      bg: '#f5f5fe', border: '#6a6af4' },
+    { id: 'blue-france',         nom: 'Bleu',      bg: '#e8edff', border: '#000091' },
+    { id: 'green-emeraude',      nom: 'Emeraude',  bg: '#b8fec9', border: '#00a95f' },
+    { id: 'green-menthe',        nom: 'Menthe',    bg: '#c3faf4', border: '#009081' },
+    { id: 'orange-terre-battue', nom: 'Orange',    bg: '#ffe9e6', border: '#e4794a' },
+    { id: 'pink-macaron',        nom: 'Rose',      bg: '#fee7fc', border: '#d63b87' },
+    { id: 'purple-glycine',      nom: 'Glycine',   bg: '#f0e4fd', border: '#a558d4' },
+    { id: 'yellow-tournesol',    nom: 'Tournesol', bg: '#fef7da', border: '#c8aa39' },
 ];
 
 // ── Module de sécurité ─────────────────────────────────────────────────────
@@ -167,12 +166,13 @@ function formaterNombre(nombre) {
     return nombre.toLocaleString('fr-FR');
 }
 
-// ── État courant ───────────────────────────────────────────────────────────
-let etatCourant = { label: 'Label', couleurId: '' };
+// ── État courant + snapshot pour annuler ───────────────────────────────────
+let etatCourant            = { label: 'Label', couleurId: '' };
+let snapshotAvantOuverture = null;
 
-// ── Appliquer une couleur sur un fr-callout ────────────────────────────────
+// ── Appliquer une couleur DSFR sur un fr-callout ───────────────────────────
 function appliquerCouleur(el, couleurId) {
-    COULEURS.forEach(c => {
+    COULEURS.forEach(function(c) {
         if (c.id) el.classList.remove('fr-callout--' + c.id);
     });
     if (couleurId) el.classList.add('fr-callout--' + couleurId);
@@ -180,27 +180,29 @@ function appliquerCouleur(el, couleurId) {
 
 // ── Construire la grille de swatches ──────────────────────────────────────
 function construireSwatches() {
-    const grid = document.getElementById('swatchGrid');
-    COULEURS.forEach(couleur => {
-        const sw = document.createElement('div');
+    var grid = document.getElementById('swatchGrid');
+    COULEURS.forEach(function(couleur) {
+        var sw = document.createElement('div');
         sw.className = 'swatch';
         sw.dataset.id = couleur.id;
         sw.setAttribute('title', couleur.nom);
 
-        const apercu = document.createElement('div');
+        var apercu = document.createElement('div');
         apercu.className = 'swatch-apercu';
         apercu.style.backgroundColor = couleur.bg;
         apercu.style.borderLeftColor  = couleur.border;
 
-        const nom = document.createElement('span');
+        var nom = document.createElement('span');
         nom.className   = 'swatch-nom';
         nom.textContent = couleur.nom;
 
         sw.appendChild(apercu);
         sw.appendChild(nom);
 
-        sw.addEventListener('click', () => {
-            document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+        sw.addEventListener('click', function() {
+            document.querySelectorAll('.swatch').forEach(function(s) {
+                s.classList.remove('selected');
+            });
             sw.classList.add('selected');
             mettreAJourPrevisualisation();
         });
@@ -209,26 +211,29 @@ function construireSwatches() {
     });
 }
 
-// ── Lire la couleur sélectionnée dans le panneau ───────────────────────────
+// ── Lire la couleur sélectionnée ──────────────────────────────────────────
 function getCouleurSelectionnee() {
-    const sel = document.querySelector('.swatch.selected');
+    var sel = document.querySelector('.swatch.selected');
     return sel ? sel.dataset.id : '';
 }
 
-// ── Mettre à jour la prévisualisation ─────────────────────────────────────
+// ── Prévisualisation ──────────────────────────────────────────────────────
 function mettreAJourPrevisualisation() {
-    const label = document.getElementById('labelInput').value;
+    var label = document.getElementById('labelInput').value;
     document.getElementById('previewLabel').textContent = label || 'Label';
     appliquerCouleur(document.getElementById('previewCallout'), getCouleurSelectionnee());
 }
 
-// ── Ouvrir le panneau de configuration ────────────────────────────────────
+// ── Ouvrir le panneau de configuration ───────────────────────────────────
 function ouvrirConfig() {
-    // Remplir le formulaire avec l'état courant
+    // Snapshot pour le vrai annuler
+    snapshotAvantOuverture = { label: etatCourant.label, couleurId: etatCourant.couleurId };
+
+    // Pré-remplir le formulaire
     document.getElementById('labelInput').value = etatCourant.label;
 
     // Synchroniser la swatch sélectionnée
-    document.querySelectorAll('.swatch').forEach(sw => {
+    document.querySelectorAll('.swatch').forEach(function(sw) {
         sw.classList.toggle('selected', sw.dataset.id === etatCourant.couleurId);
     });
 
@@ -238,7 +243,7 @@ function ouvrirConfig() {
     document.getElementById('config').style.display = 'block';
 }
 
-// ── Fermer le panneau ──────────────────────────────────────────────────────
+// ── Fermer le panneau ─────────────────────────────────────────────────────
 function fermerConfig() {
     document.getElementById('view').style.display   = 'block';
     document.getElementById('config').style.display = 'none';
@@ -246,8 +251,8 @@ function fermerConfig() {
 
 // ── Enregistrer ───────────────────────────────────────────────────────────
 function enregistrerOptions() {
-    const label     = document.getElementById('labelInput').value || 'Label';
-    const couleurId = getCouleurSelectionnee();
+    var label     = document.getElementById('labelInput').value || 'Label';
+    var couleurId = getCouleurSelectionnee();
 
     grist.widgetApi.setOption('label',     label);
     grist.widgetApi.setOption('couleurId', couleurId);
@@ -255,13 +260,15 @@ function enregistrerOptions() {
     fermerConfig();
 }
 
-// ── Annuler (restaure l'état avant ouverture) ──────────────────────────────
+// ── Annuler — restaure l'état avant ouverture ─────────────────────────────
 function annulerOptions() {
-    // Aucune sauvegarde → on referme simplement, l'état courant est intact
+    if (snapshotAvantOuverture !== null) {
+        appliquerOptions(snapshotAvantOuverture);
+    }
     fermerConfig();
 }
 
-// ── Appliquer les options reçues de Grist ─────────────────────────────────
+// ── Appliquer les options reçues de Grist ────────────────────────────────
 function appliquerOptions(options) {
     options = options || {};
     etatCourant.label     = options.label     !== undefined ? options.label     : 'Label';
@@ -271,35 +278,34 @@ function appliquerOptions(options) {
     appliquerCouleur(document.getElementById('callout'), etatCourant.couleurId);
 }
 
-// ── Initialisation Grist ───────────────────────────────────────────────────
-function initGrist() {
-    grist.ready({
-        requiredAccess: 'read table',
-        allowSelectBy:  true,
-        onEditOptions() {
-            ouvrirConfig();
-        }
-    });
-
-    grist.onOptions(options => {
-        appliquerOptions(options || {});
-    });
-
-    grist.onRecords(records => {
-        const total = records ? records.length : 0;
-        document.getElementById('rowCount').textContent = formaterNombre(total);
-    });
-}
-
-// ── DOMContentLoaded ───────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+// ── DOMContentLoaded ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
     construireSwatches();
 
     document.getElementById('labelInput').addEventListener('input', mettreAJourPrevisualisation);
     document.getElementById('saveBtn').addEventListener('click', enregistrerOptions);
     document.getElementById('cancelBtn').addEventListener('click', annulerOptions);
 
-    initGrist();
+    // Déclaration à Grist
+    grist.ready({
+        requiredAccess: 'read table',
+        allowSelectBy:  true,
+        onEditOptions: function() {
+            ouvrirConfig();
+        }
+    });
+
+    // Appelé au chargement et à chaque modification des options
+    grist.onOptions(function(options) {
+        appliquerOptions(options || {});
+        fermerConfig();
+    });
+
+    // Mise à jour du compteur
+    grist.onRecords(function(records) {
+        var total = records ? records.length : 0;
+        document.getElementById('rowCount').textContent = formaterNombre(total);
+    });
 });
 </script>
 </body>
