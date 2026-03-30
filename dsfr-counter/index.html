@@ -71,7 +71,11 @@
             width: 100%;
             height: 20px;
             border-radius: 2px;
-            border-left: 4px solid;
+            /* dimensions réduites pour le mini fr-callout */
+            padding: 0 !important;
+            margin: 0 !important;
+            min-height: 0 !important;
+            box-shadow: none !important;
         }
 
         .swatch-nom {
@@ -204,17 +208,17 @@ function masquerLoader() {
 
 /* Palette des couleurs fr-callout DSFR 1.13.1 (validées visuellement) */
 var COULEURS = [
-    { id: '',                       nom: 'Défaut',    bg: '#ececfe', border: '#6a6af4' },
-    { id: 'green-tilleul-verveine', nom: 'Tilleul',   bg: '#e8edbb', border: '#929900' },
-    { id: 'green-bourgeon',         nom: 'Bourgeon',  bg: '#c9fcac', border: '#27a658' },
-    { id: 'green-emeraude',         nom: 'Émeraude',  bg: '#b8fec9', border: '#00a95f' },
-    { id: 'green-archipel',         nom: 'Archipel',  bg: '#c0ede5', border: '#009099' },
-    { id: 'blue-ecume',             nom: 'Écume',     bg: '#dce9f9', border: '#2f82df' },
-    { id: 'purple-glycine',         nom: 'Glycine',   bg: '#f0e4fd', border: '#a558d4' },
-    { id: 'pink-tuile',             nom: 'Tuile',     bg: '#fee9e7', border: '#e2724d' },
-    { id: 'yellow-moutarde',        nom: 'Moutarde',  bg: '#feecc2', border: '#c68500' },
-    { id: 'brown-cafe-creme',       nom: 'Café',      bg: '#f5e7d5', border: '#b06b25' },
-    { id: 'beige-gris-galet',       nom: 'Galet',     bg: '#f0ede5', border: '#929088' },
+    { id: '',                       nom: 'Défaut'   },
+    { id: 'green-tilleul-verveine', nom: 'Tilleul'  },
+    { id: 'green-bourgeon',         nom: 'Bourgeon' },
+    { id: 'green-emeraude',         nom: 'Émeraude' },
+    { id: 'green-archipel',         nom: 'Archipel' },
+    { id: 'blue-ecume',             nom: 'Écume'    },
+    { id: 'purple-glycine',         nom: 'Glycine'  },
+    { id: 'pink-tuile',             nom: 'Tuile'    },
+    { id: 'yellow-moutarde',        nom: 'Moutarde' },
+    { id: 'brown-cafe-creme',       nom: 'Café'     },
+    { id: 'beige-gris-galet',       nom: 'Galet'    },
 ];
 
 // ============= SECTION : STATE =============
@@ -252,10 +256,8 @@ function construireSwatches() {
         sw.dataset.id = couleur.id;
         sw.title      = couleur.nom;
 
-        var apercu                   = document.createElement('div');
-        apercu.className             = 'swatch-apercu';
-        apercu.style.backgroundColor = couleur.bg;
-        apercu.style.borderLeftColor = couleur.border;
+        var apercu       = document.createElement('div');
+        apercu.className = 'swatch-apercu fr-callout' + (couleur.id ? ' fr-callout--' + couleur.id : '');
 
         var nom         = document.createElement('span');
         nom.className   = 'swatch-nom';
@@ -277,8 +279,10 @@ function construireSwatches() {
 
 /** Met à jour la prévisualisation dans le panneau de configuration. */
 function mettreAJourPrevisualisation() {
-    var label = document.getElementById('labelInput').value || 'Label';
-    document.getElementById('previewLabel').textContent = label;
+    var label = document.getElementById('labelInput').value;
+    var elPreviewLabel = document.getElementById('previewLabel');
+    elPreviewLabel.textContent = label;
+    elPreviewLabel.style.display = label ? '' : 'none';
     appliquerCouleur(document.getElementById('previewCallout'), getCouleurSelectionnee());
 }
 
